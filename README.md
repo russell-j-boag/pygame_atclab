@@ -1,4 +1,4 @@
-# pygame_virus
+# pygame_atclab
 
 ATCLAB conflict detection task built in Pygame for studying decision-making and automation use. 
 
