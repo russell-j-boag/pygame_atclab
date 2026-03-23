@@ -22,7 +22,7 @@ print(latest_file)
 dat <- read_csv(latest_file)
 head(dat)
 str(dat)
-View(dat)
+
 dat$stimulus <- factor(
   dat$stimulus,
   levels = c("conflict", "nonconflict"),
@@ -60,7 +60,7 @@ dat_calib_last_n <- dat_calib %>%
 dat_calib_last_n$doms_mu_low
 dat_calib_last_n$doms_sd
 
-# Summary values doms_sd_low# Summary values doms_sd# Summary values based only on the last N trials
+# Summary values based only on the last N trials
 acc_global_last_n <- mean(dat_calib_last_n$correct_num, na.rm = TRUE)
 mean_doms_last_n  <- mean(abs(dat_calib_last_n$DOMS - 5), na.rm = TRUE)
 sd_doms_last_n <- sd(abs(dat_calib_last_n$DOMS - 5), na.rm = TRUE)
@@ -264,6 +264,7 @@ dat_manual <- dat %>%
 
 burn_in_trials <- 0
 
+# DOMS summary values
 doms_mean_conflict <- dat_manual$doms_mu_low[1]
 doms_sd_conflict   <- dat_manual$doms_sd_low[1]
 doms_mean_nonconf <- dat_manual$doms_mu_high[1]
@@ -275,13 +276,6 @@ doms_sd_conflict == doms_sd_nonconf
 
 # Staircase plot
 p_stair_manual <- ggplot(dat_manual, aes(x = trial_idx)) +
-  geom_ribbon(
-    data = subset(dat_manual, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 10),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
-  ) +
   geom_hline(
     yintercept = 5,
     linetype = "dashed",
@@ -482,6 +476,7 @@ dat_auto1 <- dat %>%
 
 burn_in_trials <- 0
 
+# DOMS summary values
 doms_mean_conflict <- dat_auto1$doms_mu_low[1]
 doms_sd_conflict   <- dat_auto1$doms_sd_low[1]
 doms_mean_nonconf <- dat_auto1$doms_mu_high[1]
@@ -668,6 +663,7 @@ dat_auto2 <- dat %>%
 
 burn_in_trials <- 0
 
+# DOMS summary values
 doms_mean_conflict <- dat_auto2$doms_mu_low[1]
 doms_sd_conflict   <- dat_auto2$doms_sd_low[1]
 doms_mean_nonconf <- dat_auto2$doms_mu_high[1]
