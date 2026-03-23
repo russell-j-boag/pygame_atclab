@@ -31,8 +31,8 @@ dat$stimulus <- factor(
 
 # Calibration settings
 WINDOW <- 25                  # sliding accuracy window size
-burn_in_trials <- 50          # burn-in period in calibration block
-target_acc <- 0.80            # target accuracy in calibration block
+TARGET_ACC <- 0.80            # target accuracy in calibration block
+BURN_IN_TRIALS <- 50          # burn-in period in calibration block
 CALIB_SUMMARY_LAST_N <- 150   # last N trials used in calibration block
 
 # Calibration block -------------------------------------------------------
@@ -67,9 +67,9 @@ sd_doms_last_n <- sd(abs(dat_calib_last_n$DOMS - 5), na.rm = TRUE)
 
 # Staircase plot
 p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
-  
+  # Burn-in period shaded region
   geom_ribbon(
-    data = subset(dat_calib, trial_idx <= burn_in_trials),
+    data = subset(dat_calib, trial_idx <= BURN_IN_TRIALS),
     aes(x = trial_idx, ymin = 0, ymax = 10),
     inherit.aes = FALSE,
     fill = "red",
@@ -157,9 +157,9 @@ dat_calib_plot <- dat_calib %>%
          acc_cum = cummean(correct_num))
 
 p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
-  
+  # Burn-in period shaded region
   geom_ribbon(
-    data = subset(dat_calib, trial_idx <= burn_in_trials),
+    data = subset(dat_calib, trial_idx <= BURN_IN_TRIALS),
     aes(x = trial_idx, ymin = 0, ymax = 1),
     inherit.aes = FALSE,
     fill = "red",
@@ -171,7 +171,7 @@ p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
   
   # Target line
   geom_hline(
-    yintercept = target_acc,
+    yintercept = TARGET_ACC,
     linetype = "solid",
     size = 0.5,
     colour = "purple"
@@ -201,7 +201,7 @@ p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
     vjust  = -5.0,
     size   = 3.5,
     colour = "black",
-    label  = sprintf("Target acc = %.2f", target_acc)
+    label  = sprintf("Target acc = %.2f", TARGET_ACC)
   ) +
   # annotation: observed global accuracy
   annotate(
@@ -262,7 +262,7 @@ dat_manual <- dat %>%
     )
   )
 
-burn_in_trials <- 0
+BURN_IN_TRIALS <- 0
 
 # DOMS summary values
 doms_mean_conflict <- dat_manual$doms_mu_low[1]
@@ -353,16 +353,9 @@ dat_manual_plot <- dat_manual %>%
 acc_global_manual <- mean(dat_manual_plot$correct_num, na.rm = TRUE)
 
 p_acc_manual <- ggplot(dat_manual_plot, aes(x = trial_idx, y = acc_cum)) +
-  geom_ribbon(
-    data = subset(dat_manual, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 1),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
-  ) +
   geom_line(size = 0.5, colour = "orange") +
   geom_hline(
-    yintercept = target_acc,
+    yintercept = TARGET_ACC,
     linetype = "solid",
     size = 0.5,
     colour = "purple"
@@ -390,7 +383,7 @@ p_acc_manual <- ggplot(dat_manual_plot, aes(x = trial_idx, y = acc_cum)) +
     vjust  = -5.0,
     size   = 3.5,
     colour = "black",
-    label  = sprintf("Target acc = %.2f", target_acc)
+    label  = sprintf("Target acc = %.2f", TARGET_ACC)
   ) +
   # annotation: observed global accuracy
   annotate(
@@ -474,7 +467,7 @@ dat_auto1 <- dat %>%
     )
   )
 
-burn_in_trials <- 0
+BURN_IN_TRIALS <- 0
 
 # DOMS summary values
 doms_mean_conflict <- dat_auto1$doms_mu_low[1]
@@ -572,7 +565,7 @@ p_acc_auto1 <- ggplot(dat_auto1_plot, aes(x = trial_idx, y = acc_cum)) +
   ) +
   geom_line(size = 0.5, colour = "orange") +
   geom_hline(
-    yintercept = target_acc,
+    yintercept = TARGET_ACC,
     linetype = "solid",
     size = 0.5,
     colour = "purple"
@@ -661,7 +654,7 @@ dat_auto2 <- dat %>%
     )
   )
 
-burn_in_trials <- 0
+BURN_IN_TRIALS <- 0
 
 # DOMS summary values
 doms_mean_conflict <- dat_auto2$doms_mu_low[1]
@@ -760,7 +753,7 @@ p_acc_auto2 <- ggplot(dat_auto2_plot, aes(x = trial_idx, y = acc_cum)) +
   ) +
   geom_line(size = 0.5, colour = "orange") +
   geom_hline(
-    yintercept = target_acc,
+    yintercept = TARGET_ACC,
     linetype = "solid",
     size = 0.5,
     colour = "purple"
