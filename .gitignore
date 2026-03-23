@@ -11,4 +11,8 @@ __pycache__/
 .DS_Store
 
 # Output data
-output/
+output/*
+plots/*
+
+!output/.gitkeep
+!plots/.gitkeep

@@ -51,81 +51,82 @@ GUIDE_MARGIN_BASE = 20                # pixels from the left edge
 GUIDE_MARGIN      = GUIDE_MARGIN_BASE
 GUIDE_COLOR       = (255, 255, 0)     # pure yellow, super bright
 
-# Minimum separation threshold
-MIN_SEP_THRESHOLD_NM = 5.0  # global fixed threshold
+# DOMS (minimum separation) threshold
+DOMS_THRESHOLD_NM = 5.0  # global fixed threshold
+DOMS_EPS_NM = 1e-6       # small buffer to avoid 5nm exactly
 
 # ---------------- Block definitions --------------------------------------
 
 BLOCKS = [
     # dict(
     #     name="TRAINING",
-    #     N_TRIALS=50,
-    #     AUTOMATION_ON=False,
-    #     AUTOMATION_ACC=1.0,
-    #     STAIRCASE_ON=True,
-    #     TARGET_ACC=0.80,
+    #     N_TRIALS=1,
+    #     AUTOMATION_ON=False,               # automation off
+    #     AUTOMATION_ACC=1.0,                # not used (automation off), but harmless
+    #     STAIRCASE_ON=True,                 # staircase on
+    #     TARGET_ACC=0.80,                   # target accuracy for adaptive staircase
     #     TRIAL_FEEDBACK_ON=True,
     #     FIXATION_ON=True,
     #     ENABLE_POSTBLOCK_QUESTIONS=False,
     #     SHOW_BLOCK_FEEDBACK=True,
-    #     RESET_STAIRCASE=True,   # per-block reset
+    #     RESET_STAIRCASE=True,              # per-block reset
     #     DRT_ON=False,
     # ),
     dict(
         name="CALIBRATION",
-        N_TRIALS=2,
-        AUTOMATION_ON=False,
-        AUTOMATION_ACC=1.0,
-        STAIRCASE_ON=True,
-        TARGET_ACC=0.80,
+        N_TRIALS=300,
+        AUTOMATION_ON=False,               # automation off
+        AUTOMATION_ACC=1.0,                # not used (automation off), but harmless
+        STAIRCASE_ON=True,                 # staircase on
+        TARGET_ACC=0.80,                   # target accuracy for adaptive staircase
         TRIAL_FEEDBACK_ON=True,
         FIXATION_ON=True,
         ENABLE_POSTBLOCK_QUESTIONS=False,
         SHOW_BLOCK_FEEDBACK=True,
-        RESET_STAIRCASE=True,  # keep adapting across training->calibration 
+        RESET_STAIRCASE=True,              # if False, keep adapting across training->calibration 
         DRT_ON=False,
     ),
     dict(
         name="MANUAL",
-        N_TRIALS=2,
-        AUTOMATION_ON=False,
-        AUTOMATION_ACC=1.0,
-        STAIRCASE_ON=False,
-        TARGET_ACC=0.80,          # harmless when staircase off
+        N_TRIALS=500,
+        AUTOMATION_ON=False,               # automation off
+        AUTOMATION_ACC=1.0,                # not used (automation off), but harmless
+        STAIRCASE_ON=False,                # staircase off
+        TARGET_ACC=0.80,                   # not used (staircase off), but harmless
         TRIAL_FEEDBACK_ON=True,
         FIXATION_ON=True,
         ENABLE_POSTBLOCK_QUESTIONS=False,
         SHOW_BLOCK_FEEDBACK=True,
-        RESET_STAIRCASE=True,
+        RESET_STAIRCASE=False,             # not used (staircase off), but harmless  
         DRT_ON=False,
         MASKED_AID_BANNER_ON=True,
     ),
     dict(
         name="AUTOMATION1",
-        N_TRIALS=2,
-        AUTOMATION_ON=True,
-        AUTOMATION_ACC=0.95,      # high reliability block
-        STAIRCASE_ON=False,
-        TARGET_ACC=0.80,          # harmless when staircase off
+        N_TRIALS=500,
+        AUTOMATION_ON=True,                # automation on
+        AUTOMATION_ACC=0.95,               # high reliability block
+        STAIRCASE_ON=False,                # staircase off
+        TARGET_ACC=0.80,                   # not used (staircase off), but harmless
         TRIAL_FEEDBACK_ON=True,
         FIXATION_ON=True,
         ENABLE_POSTBLOCK_QUESTIONS=True,
         SHOW_BLOCK_FEEDBACK=True,
-        RESET_STAIRCASE=True,
+        RESET_STAIRCASE=False,             # not used (staircase off), but harmless  
         DRT_ON=False,
     ),
     dict(
         name="AUTOMATION2",
-        N_TRIALS=2,
-        AUTOMATION_ON=True,
-        AUTOMATION_ACC=0.65,      # low reliability block
-        STAIRCASE_ON=False,
-        TARGET_ACC=0.80,          # harmless when staircase off
+        N_TRIALS=500,
+        AUTOMATION_ON=True,                # automation on
+        AUTOMATION_ACC=0.65,               # low reliability block
+        STAIRCASE_ON=False,                # staircase off
+        TARGET_ACC=0.80,                   # not used (staircase off), but harmless
         TRIAL_FEEDBACK_ON=True,
         FIXATION_ON=True,
         ENABLE_POSTBLOCK_QUESTIONS=True,
         SHOW_BLOCK_FEEDBACK=True,
-        RESET_STAIRCASE=True,
+        RESET_STAIRCASE=False,             # not used (staircase off), but harmless         
         DRT_ON=False,
     ),
 ]
@@ -211,24 +212,23 @@ BLOCK_INSTRUCTIONS = {
 STAIRCASE_ON   = True
 TARGET_ACC     = 0.80
 
-# The controlled quantity is the GAP between doms_low_hi and doms_high_lo.
+# The controlled quantity is the GAP between mean conflict and non-conflict DOMS distributions.
 # Default (0,2.5) and (7.5,10) => gap = 5.0
 GAP_INIT_NM    = 5.0
-
 # Harder step (correct response): gap -= STEP_DOWN
 GAP_STEP_DOWN  = 0.2  # nm per correct (tune as needed)
-
 # Bounds on the gap
 GAP_MIN_NM     = 0.0   # nm (very hard, near threshold)
-GAP_MAX_NM     = 10.0  # nm (very easy)
-
+GAP_MAX_NM     = 10.0  # nm (very easy, far from threshold)
+# Step-size annealing (burn-in)
+STEP_DOWN_INIT_NM   = 0.5   # larger early step (e.g., 0.5 nm)
+STEP_DOWN_MIN_NM    = 0.1   # minimum late step (e.g., 0.1 nm)
 # Burn-in period with annealing
 STAIRCASE_BURNIN = 50  # reach min step by this update count
-
-# Step-size annealing (burn-in)
-STEP_DOWN_INIT_NM   = 0.5   # larger early step (e.g., 0.6 nm)
-STEP_DOWN_MIN_NM    = 0.1   # minimum late step (e.g., 0.1 nm)
-
+# Calibration summary window
+# None = use all eligible trials after burn-in exclusion
+# int  = use only the most recent N eligible trials after burn-in exclusion
+CALIB_SUMMARY_LAST_N = 150
 
 # ---------------- Automation decision aid --------------------------------
 
@@ -451,8 +451,8 @@ class DomGapStaircase:
         g = clamp(float(self.gap_nm), float(self.gap_min), float(self.gap_max))
         mu_low  = mid - 0.5 * g
         mu_high = mid + 0.5 * g
-        mu_low  = clamp(mu_low,  0.0, mid)
-        mu_high = clamp(mu_high, mid, 10.0)
+        mu_low  = clamp(mu_low,  0.0, mid - DOMS_EPS_NM)
+        mu_high = clamp(mu_high, mid + DOMS_EPS_NM, 10.0)
         return mu_low, mu_high
 
     def update(self, correct: bool):
@@ -507,9 +507,7 @@ class TrialSpec:
     route2_end_x: float
     route2_end_y: float
 
-    # Aircraft info (from R)
-    ac1_speed: float
-    ac2_speed: float
+    # Aircraft flight levels
     ac1_fl: float
     ac2_fl: float
 
@@ -525,8 +523,20 @@ class TrialSpec:
     ttms: float             # TTMS in seconds
     angle: float            # angle between routes (deg)
 
+    ac1_speed: float
+    ac2_speed: float
+    
     callsign1: str = "AAA000"
     callsign2: str = "BBB111"
+    
+    # ATC timing/order variables
+    OOP: Optional[int] = None
+    TCOP1: Optional[float] = None
+    TCOP2: Optional[float] = None
+    
+    # Bearing angles
+    theta1: Optional[float] = None
+    theta2: Optional[float] = None
     
     # Optional design flags (may be None if not provided)
     is_PM: Optional[bool] = None
@@ -548,14 +558,14 @@ class TrialSpec:
     doms_sd_high: Optional[float] = None
     # SD used on that trial
     doms_sd: Optional[float] = None
-    stair_update_index: Optional[int] = None
+    stair_update_idx: Optional[int] = None
 
 
 # ---------------- Results schema (fixed columns across all CSVs) ---------
 
 ALL_RESULT_FIELDS = [
     # identifiers
-    "participant_id", "block", "block_idx", "trial_idx",
+    "participant_id", "run_timestamp", "block", "block_idx", "trial_idx",
 
     # key mappings
     "key_conflict",
@@ -563,12 +573,15 @@ ALL_RESULT_FIELDS = [
     "key_pm",
     
     # task vars
-    "stimulus", "is_conflict", "response", "rt", "correct", "outcome", "feedback",
-    "deadline", "min_sep_px", "DOMS", "TTMS", "angle",
+    "stimulus", "is_conflict", "response", "rt_s", "rt_ms", "correct", "outcome", "feedback",
+    "deadline_s", "doms_thresh_px", "doms_px", "doms_thresh_nm", "DOMS", "TTMS", 
+    "angle_deg", "theta1_deg", "theta2_deg",
+    "OOP", "TCOP1", "TCOP2", "ac1_speed", "ac2_speed",
     "callsign1", "callsign2",
 
     # automation
-    "automation", "auto_fail", "auto_fail_prop", "auto_delay",
+    "automation", "aid_label", "aid_correct", "auto_fail", 
+    "aid_accuracy_setting", "auto_fail_prop", "aid_onset_s", "aid_onset_ms",
 
     # PM
     "is_PM", "PM_prop",
@@ -580,7 +593,7 @@ ALL_RESULT_FIELDS = [
     "intertrial_q_shown", "intertrial_q_resp",
 
     # staircase diagnostics / generation params
-    "stair_update_index", "stair_gap_nm", "stair_step_nm",
+    "stair_update_idx", "stair_gap_nm", "stair_step_nm",
     "doms_mu_low", "doms_mu_high",
     "doms_sd_low", "doms_sd_high", "doms_sd",
 
@@ -965,21 +978,23 @@ def load_latest_calibration_doms_params(
     n_c = _to_int(r.get("n_conflict", 0))
     n_n = _to_int(r.get("n_nonconflict", 0))
 
-    m_c  = _to_float(r.get("mean_conflict", None))
-    sd_c = _to_float(r.get("sd_conflict", None))
-    m_n  = _to_float(r.get("mean_nonconflict", None))
-    sd_n = _to_float(r.get("sd_nonconflict", None))
+    mean_absdiff = _to_float(r.get("mean_absdiff", None))
+    sd_absdiff   = _to_float(r.get("sd_absdiff", None))
 
     if not (n_c >= 5 and n_n >= 5):
         return None
-    if any(v is None for v in (m_c, sd_c, m_n, sd_n)):
+    if any(v is None for v in (mean_absdiff, sd_absdiff)):
         return None
 
+    mu_low_start = DOMS_THRESHOLD_NM - float(mean_absdiff)
+    mu_high_start = DOMS_THRESHOLD_NM + float(mean_absdiff)
+    shared_sd = max(1e-6, float(sd_absdiff))
+
     return {
-        "mu_low_start": float(m_c),
-        "mu_high_start": float(m_n),
-        "doms_sd_low": max(1e-6, float(sd_c)),
-        "doms_sd_high": max(1e-6, float(sd_n)),
+        "mu_low_start": mu_low_start,
+        "mu_high_start": mu_high_start,
+        "doms_sd_low": shared_sd,
+        "doms_sd_high": shared_sd,
     }
 
 
@@ -1037,7 +1052,22 @@ def load_trials_from_csv(path: str) -> List[TrialSpec]:
             
             # TTMS per trial (seconds to min sep)
             ttms = float(row["TTMS"])
-            angle = float(row["angle"])
+            angle = float(row["angle_deg"])
+            
+            theta1_raw = str(row.get("theta1", "")).strip()
+            theta2_raw = str(row.get("theta2", "")).strip()
+
+            theta1 = float(theta1_raw) if theta1_raw != "" else None
+            theta2 = float(theta2_raw) if theta2_raw != "" else None
+            
+            OOP_raw = str(row.get("OOP", "")).strip()
+            OOP = int(float(OOP_raw)) if OOP_raw != "" else None
+
+            TCOP1_raw = str(row.get("TCOP1", "")).strip()
+            TCOP1 = float(TCOP1_raw) if TCOP1_raw != "" else None
+
+            TCOP2_raw = str(row.get("TCOP2", "")).strip()
+            TCOP2 = float(TCOP2_raw) if TCOP2_raw != "" else None
 
             # -------- Optional PM / automation fields --------------------
             def parse_bool(cell: str) -> Optional[bool]:
@@ -1057,7 +1087,7 @@ def load_trials_from_csv(path: str) -> List[TrialSpec]:
             
             automation_raw = str(row.get("automation", "")).strip()
             automation = automation_raw or None
-            auto_delay = parse_float(row.get("auto_delay", "")) or 0.0
+            auto_delay = parse_float(row.get("aid_onset_s", "")) or 0.0
             # If global automation is ON, override / populate automation fields
             if AUTOMATION_ON:
                 automation = make_automation_label(is_conflict, acc=AUTOMATION_ACC)
@@ -1111,7 +1141,7 @@ def load_trials_from_csv(path: str) -> List[TrialSpec]:
             min_sep = raw_doms * GEOM_SCALE
 
             # --- Global policy threshold for guide cross, in pixels -----
-            guide_min_sep = MIN_SEP_THRESHOLD_NM * GEOM_SCALE
+            guide_min_sep = DOMS_THRESHOLD_NM * GEOM_SCALE
 
             # Ensure velocities point toward centre
             to_cx1 = cx - pos1_start_x
@@ -1150,8 +1180,6 @@ def load_trials_from_csv(path: str) -> List[TrialSpec]:
                 route2_end_x=route2_end_x,
                 route2_end_y=route2_end_y,
 
-                ac1_speed=float(row["ac1_speed"]),
-                ac2_speed=float(row["ac2_speed"]),
                 ac1_fl=float(row["ac1_fl"]),
                 ac2_fl=float(row["ac2_fl"]),
                 
@@ -1159,12 +1187,21 @@ def load_trials_from_csv(path: str) -> List[TrialSpec]:
                 is_conflict=is_conflict,
                 min_sep=min_sep,
                 guide_min_sep=guide_min_sep,
-                deadline=float(row.get("deadline", DEADLINE_SEC)),
+                deadline=float(row.get("deadline_s", DEADLINE_SEC)),
                 
                 doms_nm=raw_doms,
                 ttms=ttms,
                 angle=angle,
+                theta1=theta1,
+                theta2=theta2,
+                
+                OOP=OOP,
+                TCOP1=TCOP1,
+                TCOP2=TCOP2,
 
+                ac1_speed=float(row["ac1_speed"]),
+                ac2_speed=float(row["ac2_speed"]),
+                
                 callsign1=row.get("callsign1", "AAA000"),
                 callsign2=row.get("callsign2", "BBB111"),
 
@@ -1216,13 +1253,13 @@ def build_atc_trial(
     aspect_ratio: float,
     angle_deg: float = 90.0,
     speed_range=(450, 650),
-    mu_low_start: float = 2.0,
-    mu_high_start: float = 8.0,
+    mu_low_start: float = 2.5,
+    mu_high_start: float = 7.5,
     doms_sd: float = 0.5, # default/fall-back sd
     doms_sd_low: Optional[float] = None, # sd for conflicts
     doms_sd_high: Optional[float] = None, # sd for non-conflicts
-    doms_low_bounds: tuple[float, float] = (0.0, 5.0),
-    doms_high_bounds: tuple[float, float] = (5.0, 10.0),
+    doms_low_bounds: tuple[float, float] = (0.0, DOMS_THRESHOLD_NM - DOMS_EPS_NM),
+    doms_high_bounds: tuple[float, float] = (DOMS_THRESHOLD_NM + DOMS_EPS_NM, 10.0),
     ttms_range=(180, 200),
     flight_level: int = 370,
     default_deadline: float = 10.0,
@@ -1261,13 +1298,13 @@ def build_atc_trial(
 
     stair_gap_nm = None
     stair_step_nm = None
-    stair_update_index = None
+    stair_update_idx = None
 
     if staircase is not None and staircase.on:
         mu_low, mu_high = staircase.means_from_gap(mid=5.0)
         stair_gap_nm = float(staircase.gap_nm)
         stair_step_nm = staircase.current_step_down()
-        stair_update_index = int(staircase.n_updates) 
+        stair_update_idx = int(staircase.n_updates) 
 
     # Clamp means to their valid sides to keep truncation mild
     mu_low = clamp(mu_low, low_lo, low_hi)
@@ -1287,7 +1324,13 @@ def build_atc_trial(
 
     doms = round(float(doms), 2)
 
-    conflict_status = "conflict" if doms <= 5.0 else "nonconflict"
+    if doms == DOMS_THRESHOLD_NM:
+        if is_conflict_target:
+            doms = DOMS_THRESHOLD_NM - 0.01
+        else:
+            doms = DOMS_THRESHOLD_NM + 0.01
+
+    conflict_status = "conflict" if doms < DOMS_THRESHOLD_NM else "nonconflict"
     is_conflict = (conflict_status == "conflict")
     
     automation = None
@@ -1334,7 +1377,7 @@ def build_atc_trial(
     dist1 = TCOP1 * v1m_sec
     dist2 = TCOP2 * v2m_sec
 
-    # Headings
+    # Bearing angles
     theta1 = degtorad(random.randint(0, 360))
     theta2 = theta1 + degtorad(angle_deg)
 
@@ -1458,7 +1501,7 @@ def build_atc_trial(
 
     # Separations
     min_sep = doms * GEOM_SCALE
-    guide_min_sep = MIN_SEP_THRESHOLD_NM * GEOM_SCALE
+    guide_min_sep = DOMS_THRESHOLD_NM * GEOM_SCALE
 
     return TrialSpec(
         pos1_start_x=pos1_start_x,
@@ -1486,6 +1529,10 @@ def build_atc_trial(
         ac1_fl=float(flight_level),
         ac2_fl=float(flight_level),
 
+        OOP=int(OOP),
+        TCOP1=float(TCOP1),
+        TCOP2=float(TCOP2),
+        
         callsign1=c1,
         callsign2=c2,
         
@@ -1498,6 +1545,8 @@ def build_atc_trial(
         doms_nm=float(doms),
         ttms=float(ttms),
         angle=float(angle_deg),
+        theta1=float(theta1),
+        theta2=float(theta2),
 
         is_PM=bool(is_PM),
         pm_prop=float(pm_prop) if pm_prop > 0 else None,
@@ -1514,7 +1563,7 @@ def build_atc_trial(
         doms_sd_low=sd_low,
         doms_sd_high=sd_high,
         doms_sd=sd_used,
-        stair_update_index=stair_update_index,
+        stair_update_idx=stair_update_idx,
 
     )
 
@@ -2526,7 +2575,7 @@ def run_postblock_questionnaire(screen, clock, font, base_name=None, label_font=
 
         responses.append({
             # "block_id": base_name if base_name is not None else "",
-            "question_index": idx,
+            "question_idx": idx,
             "question": item["question"],
             "left_anchor": item["left_anchor"],
             "right_anchor": item["right_anchor"],
@@ -2785,7 +2834,7 @@ def run_postblock_slider_questions(screen, clock, font, block_name: str, title_f
             return {"quit": True}
 
         responses.append({
-            "slider_index": idx,
+            "slider_idx": idx,
             "slider_key": str(item["key"]),
             "question": str(item["question"]),
             "response": int(resp),
@@ -3218,7 +3267,8 @@ def run_trial(screen, clock, font, info_font, feedback_font,
               has_pm_design: bool, drt_enabled: bool,
               aid_label_font=None, aid_font=None,
               intertrial_every: int = INTERTRIAL_QUESTION_EVERY,
-              intertrial_item: Dict[str, str] = INTERTRIAL_QUESTION_ITEM) -> Dict[str, Any]:
+              intertrial_item: Dict[str, str] = INTERTRIAL_QUESTION_ITEM,
+              run_ts: Optional[str] = None) -> Dict[str, Any]:
     """
     Runs a single trial and returns a result dict.
 
@@ -3759,27 +3809,39 @@ def run_trial(screen, clock, font, info_font, feedback_font,
         flash_rts = ""
 
     result: Dict[str, Any] = {
+        "run_timestamp": run_ts,
         "trial_idx": trial_idx + 1,
         "stimulus": trial.conflict_status,
         "is_conflict": int(trial.is_conflict),
         "response": response if response is not None else "",
-        "rt": "" if rt is None else rt,
+        "rt_s": "" if rt is None else rt,
+        "rt_ms": round(rt * 1000, 2) if rt is not None else "",
         "correct": "" if correct is None else int(correct),
         "outcome": outcome,
         "feedback": feedback_text,
-        "deadline": trial.deadline,
-        "min_sep_px": trial.min_sep,
+        "deadline_s": trial.deadline,
+        "doms_thresh_px": trial.guide_min_sep,
+        "doms_px": trial.min_sep,
+        "doms_thresh_nm": DOMS_THRESHOLD_NM,
         "DOMS": trial.doms_nm,
         "TTMS": trial.ttms,
-        "angle": trial.angle,
+        "angle_deg": trial.angle,
+        "theta1_deg": round(math.degrees(trial.theta1), 3) if trial.theta1 is not None else "",
+        "theta2_deg": round(math.degrees(trial.theta2), 3) if trial.theta2 is not None else "",
+        "OOP": trial.OOP,
+        "TCOP1": trial.TCOP1,
+        "TCOP2": trial.TCOP2,
+        "ac1_speed": trial.ac1_speed,
+        "ac2_speed": trial.ac2_speed,
         "callsign1": trial.callsign1,
         "callsign2": trial.callsign2,
-        "auto_delay": trial.auto_delay if trial.auto_delay is not None else 0.0,
+        "aid_onset_s": trial.auto_delay if trial.auto_delay is not None else 0.0,
+        "aid_onset_ms": round(auto_delay * 1000, 0) if auto_delay is not None else "",
         "flash_onsets": flash_onsets,
         "flash_rts": flash_rts,
         "intertrial_q_shown": int(intertrial_shown),
         "intertrial_q_resp": "" if intertrial_resp is None else intertrial_resp,
-        "stair_update_index": "" if trial.stair_update_index is None else int(trial.stair_update_index),
+        "stair_update_idx": "" if trial.stair_update_idx is None else int(trial.stair_update_idx),
     }
 
     # Staircase diagnostics (if present)
@@ -3801,7 +3863,6 @@ def run_trial(screen, clock, font, info_font, feedback_font,
     if getattr(trial, "doms_sd", None) is not None:
         result["doms_sd"] = float(trial.doms_sd)
 
-    
     # PM
     if has_pm_design:
         if trial.is_PM is not None:
@@ -3812,8 +3873,14 @@ def run_trial(screen, clock, font, info_font, feedback_font,
     # Automation
     if trial.automation is not None:
         result["automation"] = trial.automation
+    if trial.automation is not None:
+        result["aid_label"] = trial.automation
+    if trial.auto_fail is not None:
+        result["aid_correct"] = 1 - int(trial.auto_fail)
     if trial.auto_fail is not None:
         result["auto_fail"] = int(trial.auto_fail)
+    if trial.automation is not None:
+        result["aid_accuracy_setting"] = AUTOMATION_ACC
     if trial.automation is not None:
         # record the nominal failure probability of the aid
         result["auto_fail_prop"] = (
@@ -3924,12 +3991,19 @@ class ATCLabApp:
             target_acc=float(target_acc),
         )
 
-    def compute_doms_summary(self, exclude_first_trials: int = STAIRCASE_BURNIN) -> Dict[str, Any]:
+    def compute_doms_summary(
+        self,
+        exclude_first_trials: int = STAIRCASE_BURNIN,
+        summary_last_n: Optional[int] = CALIB_SUMMARY_LAST_N
+    ) -> Dict[str, Any]:
         """
-        Compute realised DOMS mean/sd separately for conflict vs non-conflict,
-        excluding the first `exclude_first_trials` trials of THIS BLOCK.
+        Compute realised DOMS mean/sd separately for conflict vs non-conflict.
 
-        Also excludes PM trials (since staircase not updated on PM targets).
+        Rules:
+          - exclude PM trials
+          - exclude the first `exclude_first_trials` burn-in trials of THIS BLOCK
+          - from the remaining eligible trials, optionally keep only the last
+            `summary_last_n` trials (across both classes combined)
         """
         def _is_pm_row(r: Dict[str, Any]) -> bool:
             try:
@@ -3942,7 +4016,7 @@ class ATCLabApp:
             if v in ("", None):
                 return None
             try:
-                return int(v)  # trial is 1-based
+                return int(v)  # 1-based
             except Exception:
                 return None
 
@@ -3958,15 +4032,19 @@ class ATCLabApp:
             except Exception:
                 return None
 
-        xs_conf = []
-        xs_non  = []
+        def _get_is_conflict(r: Dict[str, Any]) -> Optional[bool]:
+            try:
+                return int(r.get("is_conflict", 0)) == 1
+            except Exception:
+                return None
+
+        # ---------- collect eligible trials first ----------
+        eligible_rows = []
 
         for r in self.results:
-            # exclude PM trials
             if _is_pm_row(r):
                 continue
 
-            # exclude first N trials of the block
             ti = _get_trial(r)
             if ti is None:
                 continue
@@ -3977,15 +4055,28 @@ class ATCLabApp:
             if doms is None:
                 continue
 
-            try:
-                is_conf = int(r.get("is_conflict", 0)) == 1
-            except Exception:
-                is_conf = False
+            is_conf = _get_is_conflict(r)
+            if is_conf is None:
+                continue
 
-            if is_conf:
-                xs_conf.append(doms)
-            else:
-                xs_non.append(doms)
+            eligible_rows.append({
+                "trial_idx": ti,
+                "DOMS": doms,
+                "is_conflict": is_conf,
+            })
+
+        # keep chronological order, then take last N if requested
+        eligible_rows.sort(key=lambda x: x["trial_idx"])
+
+        last_n_setting = None if summary_last_n is None else int(summary_last_n)
+        if last_n_setting is not None and last_n_setting > 0:
+            eligible_rows = eligible_rows[-last_n_setting:]
+
+        n_trials_summarised = len(eligible_rows)
+
+        xs_conf = [r["DOMS"] for r in eligible_rows if r["is_conflict"]]
+        xs_non  = [r["DOMS"] for r in eligible_rows if not r["is_conflict"]]
+        xs_abs  = [abs(r["DOMS"] - DOMS_THRESHOLD_NM) for r in eligible_rows]
 
         def _mean_sd(xs: List[float]) -> tuple[float, float, int]:
             n = len(xs)
@@ -3997,17 +4088,35 @@ class ATCLabApp:
             var = sum((x - m) ** 2 for x in xs) / (n - 1)
             return (m, math.sqrt(var), n)
 
-        m_c, sd_c, n_c = _mean_sd(xs_conf)
-        m_n, sd_n, n_n = _mean_sd(xs_non)
+        _, _, n_c = _mean_sd(xs_conf)
+        _, _, n_n = _mean_sd(xs_non)
+
+        mean_absdiff, sd_absdiff, n_abs = _mean_sd(xs_abs)
+
+        mean_conflict = float("nan")
+        mean_nonconflict = float("nan")
+
+        if n_abs > 0 and not math.isnan(mean_absdiff):
+            mean_conflict = DOMS_THRESHOLD_NM - mean_absdiff
+            mean_nonconflict = DOMS_THRESHOLD_NM + mean_absdiff
 
         return {
             "exclude_first_trials": int(exclude_first_trials),
+            "summary_last_n_setting": "" if last_n_setting is None else int(last_n_setting),
+            "n_trials_summarised": int(n_trials_summarised),
+
+            # keep class counts for diagnostics / sanity checks
             "n_conflict": int(n_c),
-            "mean_conflict": m_c,
-            "sd_conflict": sd_c,
             "n_nonconflict": int(n_n),
-            "mean_nonconflict": m_n,
-            "sd_nonconflict": sd_n,
+
+            # symmetric calibration summary
+            "mean_absdiff": mean_absdiff,
+            "sd_absdiff": sd_absdiff,
+
+            "mean_conflict": mean_conflict,
+            "sd_conflict": sd_absdiff,
+            "mean_nonconflict": mean_nonconflict,
+            "sd_nonconflict": sd_absdiff,
         }
 
     def save_doms_summary_csv(self, *, block_order: int, block_name: str) -> Optional[str]:
@@ -4025,14 +4134,26 @@ class ATCLabApp:
         fieldnames = [
             "participant_id",
             "exclude_first_trials",
-            "n_conflict", "mean_conflict", "sd_conflict",
-            "n_nonconflict", "mean_nonconflict", "sd_nonconflict",
+            "summary_last_n_setting",
+            "n_trials_summarised",
+            "n_conflict",
+            "n_nonconflict",
+            "mean_absdiff",
+            "sd_absdiff",
+            "mean_conflict",
+            "sd_conflict",
+            "mean_nonconflict",
+            "sd_nonconflict",
         ]
 
         row = dict(self.doms_stats)
         row["participant_id"] = "" if self.participant_id is None else int(self.participant_id)
 
-        for k in ("mean_conflict", "sd_conflict", "mean_nonconflict", "sd_nonconflict"):
+        for k in (
+            "mean_absdiff", "sd_absdiff",
+            "mean_conflict", "sd_conflict",
+            "mean_nonconflict", "sd_nonconflict"
+        ):
             if k in row and isinstance(row[k], (int, float)) and not math.isnan(row[k]):
                 row[k] = round(float(row[k]), 5)
 
@@ -4253,8 +4374,8 @@ class ATCLabApp:
 
         # ------------------ DOMS generation parameters for THIS block ------------------
         # Defaults (used for TRAINING + CALIBRATION unless overrided elsewhere)
-        mu_low_start  = 2.0   # conflict mean (<=5)
-        mu_high_start = 8.0   # non-conflict mean (>=5)
+        mu_low_start  = 2.5   # conflict mean (<=5)
+        mu_high_start = 7.5   # non-conflict mean (>=5)
         doms_sd       = 0.5   # fallback SD if per-class SD not provided
         doms_sd_low   = None  # conflict SD (optional)
         doms_sd_high  = None  # non-conflict SD (optional)
@@ -4307,8 +4428,8 @@ class ATCLabApp:
                 doms_sd_low=doms_sd_low,
                 doms_sd_high=doms_sd_high,
 
-                doms_low_bounds=(0.0, 5.0),
-                doms_high_bounds=(5.0, 10.0),
+                doms_low_bounds=(0.0, DOMS_THRESHOLD_NM - DOMS_EPS_NM),
+                doms_high_bounds=(DOMS_THRESHOLD_NM + DOMS_EPS_NM, 10.0),
 
                 ttms_range=(140, 210),
                 flight_level=370,
@@ -4333,6 +4454,7 @@ class ATCLabApp:
                 drt_enabled=self.drt_enabled,
                 aid_label_font=self.aid_label_font,
                 aid_font=self.aid_font,
+                run_ts=self.run_ts,
             )
 
             res["block"] = block_name
@@ -4340,7 +4462,7 @@ class ATCLabApp:
             res["participant_id"] = "" if self.participant_id is None else int(self.participant_id)
             res["key_conflict"] = self.key_conflict_label
             res["key_nonconf"] = self.key_nonconf_label
-            res["key_pm"] = self.key_pm_label
+            res["key_pm"] = self.key_pm_label if self.has_pm_design else ""
 
             if "quit" in res and res["quit"]:
                 break
@@ -4422,7 +4544,7 @@ class ATCLabApp:
             "participant_id",
             "block",
             "block_idx",
-            "slider_index",
+            "slider_idx",
             "slider_key",
             "question",
             "response",
@@ -4460,7 +4582,7 @@ class ATCLabApp:
             "participant_id",
             "block",
             "block_idx",
-            "slider_index",
+            "slider_idx",
             "slider_key",
             "question",
             "response",
@@ -4509,7 +4631,7 @@ class ATCLabApp:
             "participant_id",
             "block",
             "block_idx",
-            "question_index",
+            "question_idx",
             "question",
             "left_anchor",
             "right_anchor",
@@ -4553,7 +4675,7 @@ class ATCLabApp:
             "participant_id",
             "block",
             "block_idx",
-            "question_index",
+            "question_idx",
             "question",
             "left_anchor",
             "right_anchor",
@@ -4725,7 +4847,13 @@ class ATCLabApp:
             if str(name).upper() in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
                 exclude_n = 0
 
-            self.doms_stats = self.compute_doms_summary(exclude_first_trials=exclude_n)
+            summary_last_n = CALIB_SUMMARY_LAST_N if str(name).upper() == "CALIBRATION" else None
+
+            self.doms_stats = self.compute_doms_summary(
+                exclude_first_trials=exclude_n,
+                summary_last_n=summary_last_n
+            )
+            
             self.save_doms_summary_csv(block_order=presented_order, block_name=name)
 
             # Cache CALIBRATION DOMS params for later blocks

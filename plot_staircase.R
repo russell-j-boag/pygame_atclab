@@ -1,5 +1,7 @@
+# Clear workspace
 rm(list = ls())
 
+# Load libraries
 library("dplyr")
 library("readr")
 library("stringr")
@@ -7,6 +9,7 @@ library("tidyverse")
 library("zoo")
 library("patchwork")
 
+# Load latest complete results file
 files <- list.files(
   "output",
   pattern = "^results_.*_b00_ALL\\.csv$",
@@ -19,17 +22,18 @@ print(latest_file)
 dat <- read_csv(latest_file)
 head(dat)
 str(dat)
-
+View(dat)
 dat$stimulus <- factor(
   dat$stimulus,
   levels = c("conflict", "nonconflict"),
   labels = c("Conflict", "Non-conflict")
 )
 
-WINDOW <- 25
-burn_in_trials <- 50
-target_acc <- 0.80
-
+# Calibration settings
+WINDOW <- 25                  # sliding accuracy window size
+burn_in_trials <- 50          # burn-in period in calibration block
+target_acc <- 0.80            # target accuracy in calibration block
+CALIB_SUMMARY_LAST_N <- 150   # last N trials used in calibration block
 
 # Calibration block -------------------------------------------------------
 
@@ -48,6 +52,18 @@ dat_calib <- dat %>%
       partial = TRUE
     )
   )
+
+# Keep only the last N calibration trials for summary calculations
+dat_calib_last_n <- dat_calib %>%
+  slice_tail(n = CALIB_SUMMARY_LAST_N)
+
+dat_calib_last_n$doms_mu_low
+dat_calib_last_n$doms_sd
+
+# Summary values doms_sd_low# Summary values doms_sd# Summary values based only on the last N trials
+acc_global_last_n <- mean(dat_calib_last_n$correct_num, na.rm = TRUE)
+mean_doms_last_n  <- mean(abs(dat_calib_last_n$DOMS - 5), na.rm = TRUE)
+sd_doms_last_n <- sd(abs(dat_calib_last_n$DOMS - 5), na.rm = TRUE)
 
 # Staircase plot
 p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
@@ -128,7 +144,9 @@ p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
     colour = "orange",
     size = 4
   ) +
-  ggtitle("Calibration block", subtitle = "Staircase-adjusted difficulty")
+  ggtitle("Calibration block", 
+          subtitle = paste0("Staircase-adjusted difficulty\n",
+                            "Summary uses last ", nrow(dat_calib_last_n), " post-burn-in calibration trials"))
 
 p_stair
 
@@ -137,8 +155,6 @@ dat_calib_plot <- dat_calib %>%
   arrange(trial_idx) %>%
   mutate(correct_num = as.numeric(correct),
          acc_cum = cummean(correct_num))
-
-acc_global <- mean(dat_calib_plot$correct_num, na.rm = TRUE)
 
 p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
   
@@ -162,7 +178,7 @@ p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
   ) +
   # Global mean
   geom_hline(
-    yintercept = acc_global,
+    yintercept = acc_global_last_n,
     linetype = "dashed",
     size = 0.5,
     colour = "orange"
@@ -196,7 +212,7 @@ p_acc <- ggplot(dat_calib_plot, aes(x = trial_idx, y = acc_cum)) +
     vjust  = -3.0,
     size   = 3.5,
     colour = "black",
-    label  = sprintf("Observed acc = %.2f", acc_global)
+    label  = sprintf("Observed acc = %.2f", acc_global_last_n)
   ) +
   labs(x = "Trial", y = "Running accuracy") +
   ylim(0, 1) +
@@ -252,6 +268,10 @@ doms_mean_conflict <- dat_manual$doms_mu_low[1]
 doms_sd_conflict   <- dat_manual$doms_sd_low[1]
 doms_mean_nonconf <- dat_manual$doms_mu_high[1]
 doms_sd_nonconf   <- dat_manual$doms_sd_high[1]
+
+# Checks (should be TRUE)
+abs(doms_mean_conflict - 5) == abs(doms_mean_nonconf - 5)
+doms_sd_conflict == doms_sd_nonconf
 
 # Staircase plot
 p_stair_manual <- ggplot(dat_manual, aes(x = trial_idx)) +
@@ -323,7 +343,9 @@ p_stair_manual <- ggplot(dat_manual, aes(x = trial_idx)) +
     colour = "orange",
     size = 4
   ) +
-  ggtitle("Manual block", subtitle = "Difficulty sampled from calibration-block mean and sd")
+  ggtitle("Manual block", 
+          subtitle = paste0("Difficulty sampled from calibration mean and sd\n",
+                            "Summary uses last ", nrow(dat_calib_last_n), " post-burn-in calibration trials"))
 
 p_stair_manual
 
@@ -467,13 +489,6 @@ doms_sd_nonconf   <- dat_auto1$doms_sd_high[1]
 
 # Staricase plot
 p_stair_auto1 <- ggplot(dat_auto1, aes(x = trial_idx)) +
-  geom_ribbon(
-    data = subset(dat_auto1, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 10),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
-  ) +
   geom_hline(
     yintercept = 5,
     linetype = "dashed",
@@ -535,7 +550,9 @@ p_stair_auto1 <- ggplot(dat_auto1, aes(x = trial_idx)) +
     colour = "orange",
     size = 4
   ) +
-  ggtitle("Automation block (high reliability)", subtitle = "Difficulty sampled from calibration-block mean and sd")
+  ggtitle("Automation block (high reliability)", 
+          subtitle = paste0("Difficulty sampled from calibration mean and sd\n",
+                            "Summary uses last ", nrow(dat_calib_last_n), " post-burn-in calibration trials"))
 
 p_stair_auto1
 
@@ -549,12 +566,14 @@ acc_global_auto1 <- mean(dat_auto1_plot$correct_num, na.rm = TRUE)
 aid_acc_auto1 <- 1 - mean(dat_auto1_plot$auto_fail, na.rm = TRUE)
 
 p_acc_auto1 <- ggplot(dat_auto1_plot, aes(x = trial_idx, y = acc_cum)) +
-  geom_ribbon(
-    data = subset(dat_auto1, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 1),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
+  # trial-level aid correctness (open circles)
+  geom_point(
+    aes(y = as.numeric(aid_correct)),
+    shape  = 1,        # open circle
+    size   = 1.4,
+    stroke = 0.8,
+    alpha  = 0.6,
+    colour = "forestgreen"
   ) +
   geom_line(size = 0.5, colour = "orange") +
   geom_hline(
@@ -656,13 +675,6 @@ doms_sd_nonconf   <- dat_auto2$doms_sd_high[1]
 
 # Staricase plot
 p_stair_auto2 <- ggplot(dat_auto2, aes(x = trial_idx)) +
-  geom_ribbon(
-    data = subset(dat_auto2, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 10),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
-  ) +
   geom_hline(
     yintercept = 5,
     linetype = "dashed",
@@ -724,7 +736,9 @@ p_stair_auto2 <- ggplot(dat_auto2, aes(x = trial_idx)) +
     colour = "orange",
     size = 4
   ) +
-  ggtitle("Automation block (low reliability)", subtitle = "Difficulty sampled from calibration-block mean and sd")
+  ggtitle("Automation block (low reliability)", 
+          subtitle = paste0("Difficulty sampled from calibration mean and sd\n",
+                            "Summary uses last ", nrow(dat_calib_last_n), " post-burn-in calibration trials"))
 
 p_stair_auto2
 
@@ -739,12 +753,14 @@ acc_global_auto2 <- mean(dat_auto2_plot$correct_num, na.rm = TRUE)
 aid_acc_auto2 <- 1 - mean(dat_auto2_plot$auto_fail, na.rm = TRUE)
 
 p_acc_auto2 <- ggplot(dat_auto2_plot, aes(x = trial_idx, y = acc_cum)) +
-  geom_ribbon(
-    data = subset(dat_auto2, trial_idx <= burn_in_trials),
-    aes(x = trial_idx, ymin = 0, ymax = 1),
-    inherit.aes = FALSE,
-    fill = "red",
-    alpha = 0.15
+  # trial-level aid correctness (open circles)
+  geom_point(
+    aes(y = as.numeric(aid_correct)),
+    shape  = 1,        # open circle
+    size   = 1.4,
+    stroke = 0.8,
+    alpha  = 0.6,
+    colour = "forestgreen"
   ) +
   geom_line(size = 0.5, colour = "orange") +
   geom_hline(
@@ -835,7 +851,7 @@ ggsave(
 # ggsave(
 #   filename = "plots/combined_auto.png",
 #   plot     = p_combo,
-#   width    = 15,
-#   height   = 6,
+#   width    = 16,
+#   height   = 9,
 #   units    = "in"
 # )
