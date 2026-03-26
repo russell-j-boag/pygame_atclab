@@ -41,8 +41,8 @@ dat_calib <- dat %>%
   filter(block == "CALIBRATION") %>%
   arrange(trial_idx) %>%
   mutate(
-    correct_num = as.numeric(correct),
-    acc_running = cummean(correct),
+    correct_num = if_else(is.na(correct), 0, as.numeric(correct)),
+    acc_running = cumsum(correct_num) / row_number(),
     acc_slide   = rollapply(
       correct_num,
       width   = WINDOW,
@@ -94,12 +94,10 @@ p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
     fill = "purple",
     alpha = 0.25
   ) +
-  
   # DOMS samples
   geom_point(aes(y = DOMS, colour = stimulus),
              size = 1,
              alpha = 0.85) +
-  
   # Low mean line
   geom_line(
     aes(y = doms_mu_low),
@@ -107,7 +105,6 @@ p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
     linetype = "solid",
     colour = "orange"
   ) +
-  
   # High mean line
   geom_line(
     aes(y = doms_mu_high),
@@ -115,12 +112,10 @@ p_stair <- ggplot(dat_calib, aes(x = trial_idx)) +
     linetype = "solid",
     colour = "purple"
   ) +
-  
   scale_colour_manual(values = c(
     "Conflict"    = "orange",
     "Non-conflict" = "purple"
   )) +
-  
   labs(x = "Trial", y = "Dist min separation (NM)", colour = "Stimulus") +
   ylim(0, 10) +
   theme_classic() +
@@ -250,8 +245,8 @@ dat_manual <- dat %>%
   filter(block == "MANUAL") %>%
   arrange(trial_idx) %>%
   mutate(
-    correct_num = as.numeric(correct),
-    acc_running = cummean(correct),
+    correct_num = if_else(is.na(correct), 0, as.numeric(correct)),
+    acc_running = cumsum(correct_num) / row_number(),
     acc_slide   = rollapply(
       correct_num,
       width   = WINDOW,
@@ -455,8 +450,8 @@ dat_auto1 <- dat %>%
   filter(block == "AUTOMATION1") %>%
   arrange(trial_idx) %>%
   mutate(
-    correct_num = as.numeric(correct),
-    acc_running = cummean(correct),
+    correct_num = if_else(is.na(correct), 0, as.numeric(correct)),
+    acc_running = cumsum(correct_num) / row_number(),
     acc_slide   = rollapply(
       correct_num,
       width   = WINDOW,
@@ -642,8 +637,8 @@ dat_auto2 <- dat %>%
   filter(block == "AUTOMATION2") %>%
   arrange(trial_idx) %>%
   mutate(
-    correct_num = as.numeric(correct),
-    acc_running = cummean(correct),
+    correct_num = if_else(is.na(correct), 0, as.numeric(correct)),
+    acc_running = cumsum(correct_num) / row_number(),
     acc_slide   = rollapply(
       correct_num,
       width   = WINDOW,
