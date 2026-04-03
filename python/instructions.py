@@ -278,24 +278,6 @@ def draw_nav_button(surface, rect, label, enabled=True):
 # Text helpers
 # =========================================================
 
-def wrap_text_lines(font_obj, text, max_width):
-    words = str(text).split()
-    if not words:
-        return [""]
-
-    lines = []
-    cur = words[0]
-    for word in words[1:]:
-        test = f"{cur} {word}"
-        if font_obj.size(test)[0] <= max_width:
-            cur = test
-        else:
-            lines.append(cur)
-            cur = word
-    lines.append(cur)
-    return lines
-
-
 def draw_wrapped_centered_block(surface, font_obj, text, rect, color=None, line_gap=None):
     if color is None:
         color = HUD_TEXT_COLOR
@@ -310,7 +292,7 @@ def draw_wrapped_centered_block(surface, font_obj, text, rect, color=None, line_
         if para.strip() == "":
             lines.append("")
         else:
-            lines.extend(wrap_text_lines(font_obj, para, w))
+            lines.extend(task.wrap_text_lines(font_obj, para, w))
 
     heights = []
     for line in lines:
@@ -356,92 +338,22 @@ def draw_guide_cross_instructions(surface, trial,
 
     min_sep = trial.guide_min_sep
 
-    h_half = min_sep
-    v_half = min_sep * 2
-
-    pygame.draw.line(
+    task.draw_guide_cross(
         surface,
-        color,
-        (center_x - h_half, center_y),
-        (center_x + h_half, center_y),
-        thickness,
+        center_x,
+        center_y,
+        min_sep,
+        color=color,
+        thickness=thickness,
+        tick_len=tick_len,
     )
-
-    pygame.draw.line(
-        surface,
-        color,
-        (center_x, center_y - v_half),
-        (center_x, center_y + v_half),
-        thickness,
-    )
-
-    h_segment = h_half / 5.0
-    for i in range(1, 5):
-        offset = h_segment * i
-        x_left = center_x - offset
-        x_right = center_x + offset
-
-        pygame.draw.line(
-            surface,
-            color,
-            (x_left, center_y - tick_len / 2.0),
-            (x_left, center_y + tick_len / 2.0),
-            1,
-        )
-        pygame.draw.line(
-            surface,
-            color,
-            (x_right, center_y - tick_len / 2.0),
-            (x_right, center_y + tick_len / 2.0),
-            1,
-        )
-
-    long_tick = tick_len * 2.0
-    for x_end in (center_x - h_half, center_x + h_half):
-        pygame.draw.line(
-            surface,
-            color,
-            (x_end, center_y - long_tick / 2.0),
-            (x_end, center_y + long_tick / 2.0),
-            1,
-        )
-
-    v_segment = v_half / 10.0
-    for i in range(1, 10):
-        offset = v_segment * i
-        y_up = center_y - offset
-        y_down = center_y + offset
-
-        pygame.draw.line(
-            surface,
-            color,
-            (center_x - tick_len / 2.0, y_up),
-            (center_x + tick_len / 2.0, y_up),
-            1,
-        )
-        pygame.draw.line(
-            surface,
-            color,
-            (center_x - tick_len / 2.0, y_down),
-            (center_x + tick_len / 2.0, y_down),
-            1,
-        )
-
-    for y_end in (center_y - v_half, center_y + v_half):
-        pygame.draw.line(
-            surface,
-            color,
-            (center_x - long_tick / 2.0, y_end),
-            (center_x + long_tick / 2.0, y_end),
-            1,
-        )
 
     return {
         "guide_x": center_x,
         "guide_y": center_y,
         "guide_min_sep": int(min_sep),
-        "guide_full_w": int(2 * h_half),
-        "guide_full_h": int(2 * v_half),
+        "guide_full_w": int(2 * min_sep),
+        "guide_full_h": int(4 * min_sep),
     }
     
     
@@ -497,9 +409,7 @@ AUTO_NONCONF_TRIAL = make_example_trial(conflict=False, automation="NON-CONF")
 # =========================================================
 
 def draw_info_box_custom(surface, callsign, speed_label, topleft,
-                         text_color=(255, 255, 255),
-                         box_color=None,
-                         border_color=None):
+                         text_color=(255, 255, 255)):
 
     pad_x = task.ui(1)
     pad_y = task.ui(1)
@@ -560,21 +470,19 @@ def draw_masked_aid_banner_custom(surface, y):
     
 def draw_aid_banner_custom(surface, label, y):
     label_up = str(label).upper()
-
-    if label_up == "CONFLICT":
-        label_color = task.INCORRECT_COLOR
-    elif label_up in ("NON-CONF", "NONCONFLICT", "NON-CONFLICT"):
-        label_color = task.CORRECT_COLOR
-    else:
-        label_color = HUD_TEXT_COLOR
+    task.draw_aid_banner_top_center(
+        surface,
+        aid_label_font,
+        aid_font,
+        label_up,
+        y=int(y),
+        fg=AID_WHITE,
+    )
 
     surf1 = aid_label_font.render("AID JUDGES:", True, AID_WHITE)
     rect1 = surf1.get_rect(midtop=(task.SCREEN_WIDTH // 2, int(y)))
-    surface.blit(surf1, rect1)
-
-    surf2 = aid_font.render(label_up, True, label_color)
-    rect2 = surf2.get_rect(midtop=(task.SCREEN_WIDTH // 2, rect1.bottom + task.ui(4)))
-    surface.blit(surf2, rect2)
+    surf2 = aid_font.render(label_up, True, AID_WHITE)
+    rect2 = surf2.get_rect(midtop=(task.SCREEN_WIDTH // 2, rect1.bottom + 2))
 
     return {
         "label_rect": rect1,
@@ -582,7 +490,7 @@ def draw_aid_banner_custom(surface, label, y):
     }
 
 
-def draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None, draw_guide=False):
+def draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None):
     """Instruction-only radar background."""
     surface.fill(task.BG_COLOR)
 
@@ -621,11 +529,6 @@ def draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None, dra
             max(1, task.ui(8)),
         )
 
-    # Optional guide cross
-    if draw_guide:
-        draw_guide_cross_instructions(surface, trial, color=GUIDE_COLOR)
-        
-        
 def draw_trial_snapshot(surface, trial, *, timer_text="9.8s", trial_text="Trial 1/40",
                         show_aid_banner=True, masked_banner=False):
     surface.fill(task.BG_COLOR)
@@ -634,7 +537,7 @@ def draw_trial_snapshot(surface, trial, *, timer_text="9.8s", trial_text="Trial 
     cx = task.SCREEN_WIDTH / 2
     cy = task.SCREEN_HEIGHT / 2
 
-    draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None, draw_guide=False)
+    draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None)
     surface.set_clip(None)
 
     guide_meta = draw_guide_cross_instructions(surface, trial, color=GUIDE_COLOR)
@@ -783,7 +686,7 @@ def draw_trial_snapshot_muted(surface, trial, *, timer_text="9.8s", trial_text="
     cx = task.SCREEN_WIDTH / 2
     cy = task.SCREEN_HEIGHT / 2
 
-    draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None, draw_guide=False)
+    draw_blank_radar_instructions(surface, trial, cx, cy, border_color=None)
     surface.set_clip(None)
 
     draw_guide_cross_instructions(surface, trial, color=GUIDE_COLOR)
@@ -1444,7 +1347,7 @@ def draw_text_slide(surface, slide):
         if para.strip() == "":
             body_lines.append("")
         else:
-            body_lines.extend(wrap_text_lines(body_font, para, content_w))
+            body_lines.extend(task.wrap_text_lines(body_font, para, content_w))
 
     body_line_gap = int(body_font.get_linesize() * 0.35)
     body_heights = []
@@ -1583,9 +1486,9 @@ def draw_conflict_3_slide(surface, slide):
         connector_color=(110, 110, 110),
     )
 
-    cpa_meta = compute_cpa(CONFLICT_TRIAL)
+    cpa_meta = task.compute_cpa(CONFLICT_TRIAL)
     half_t = cpa_meta["t_cpa"] / 2.0
-    half_meta = compute_positions_at_time(CONFLICT_TRIAL, half_t)
+    half_meta = task.compute_positions_at_time(CONFLICT_TRIAL, half_t)
 
     ghost_meta = draw_projected_ghost_aircraft(
         surface,
@@ -1617,7 +1520,7 @@ def draw_conflict_4_slide(surface, slide):
         connector_color=(110, 110, 110),
     )
 
-    cpa_meta = compute_cpa(CONFLICT_TRIAL)
+    cpa_meta = task.compute_cpa(CONFLICT_TRIAL)
     ghost_meta = draw_projected_ghost_aircraft(
         surface,
         CONFLICT_TRIAL,
@@ -1648,7 +1551,7 @@ def draw_conflict_5_slide(surface, slide):
         connector_color=(110, 110, 110),
     )
 
-    cpa_meta = compute_cpa(CONFLICT_TRIAL)
+    cpa_meta = task.compute_cpa(CONFLICT_TRIAL)
     draw_projected_ghost_aircraft(
         surface,
         CONFLICT_TRIAL,
@@ -1759,85 +1662,6 @@ def draw_slide(surface, idx):
         draw_automation_example_slide(surface, slide)
     else:
         raise ValueError(f"Unknown slide kind: {kind}")
-
-
-def compute_positions_at_time(trial, t):
-    """
-    Compute aircraft positions at time t seconds from trial start.
-    """
-    x1 = float(trial.pos1_start_x)
-    y1 = float(trial.pos1_start_y)
-    x2 = float(trial.pos2_start_x)
-    y2 = float(trial.pos2_start_y)
-
-    vx1 = float(trial.vel1_x)
-    vy1 = float(trial.vel1_y)
-    vx2 = float(trial.vel2_x)
-    vy2 = float(trial.vel2_y)
-
-    p1 = (
-        int(round(x1 + vx1 * t)),
-        int(round(y1 + vy1 * t)),
-    )
-    p2 = (
-        int(round(x2 + vx2 * t)),
-        int(round(y2 + vy2 * t)),
-    )
-
-    return {
-        "t": t,
-        "p1": p1,
-        "p2": p2,
-    }
-    
-    
-def compute_cpa(trial, max_t=None):
-    """
-    Compute time of closest point of approach (CPA) in seconds, based on
-    current positions and velocity vectors in screen coordinates.
-
-    If max_t is provided, clamp to [0, max_t].
-    """
-    x1 = float(trial.pos1_start_x)
-    y1 = float(trial.pos1_start_y)
-    x2 = float(trial.pos2_start_x)
-    y2 = float(trial.pos2_start_y)
-
-    vx1 = float(trial.vel1_x)
-    vy1 = float(trial.vel1_y)
-    vx2 = float(trial.vel2_x)
-    vy2 = float(trial.vel2_y)
-
-    rx = x2 - x1
-    ry = y2 - y1
-    rvx = vx2 - vx1
-    rvy = vy2 - vy1
-
-    rv2 = rvx * rvx + rvy * rvy
-    if rv2 <= 1e-12:
-        t_cpa = 0.0
-    else:
-        t_cpa = - (rx * rvx + ry * rvy) / rv2
-
-    if max_t is None:
-        t_cpa = max(0.0, t_cpa)
-    else:
-        t_cpa = max(0.0, min(float(max_t), t_cpa))
-
-    p1 = (
-        int(round(x1 + vx1 * t_cpa)),
-        int(round(y1 + vy1 * t_cpa)),
-    )
-    p2 = (
-        int(round(x2 + vx2 * t_cpa)),
-        int(round(y2 + vy2 * t_cpa)),
-    )
-
-    return {
-        "t_cpa": t_cpa,
-        "p1": p1,
-        "p2": p2,
-    }
 
 
 def draw_projected_ghost_aircraft(surface, trial, pos_meta, ghost_color=GUIDE_COLOR):

@@ -626,41 +626,44 @@ def clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
 
 
-def configure_display_and_scaling(*, fullscreen: bool, requested_w: int, requested_h: int):
-    """
-    Sets SCREEN_WIDTH/SCREEN_HEIGHT based on fullscreen display resolution (or requested window),
-    computes UI_SCALE relative to BASE_W/BASE_H, and updates all scale-dependent globals.
-    """
+def _apply_scaled_display_dimensions(width: int, height: int):
+    """Update global display-dependent dimensions from a resolved surface size."""
     global SCREEN_WIDTH, SCREEN_HEIGHT, UI_SCALE
     global GEOM_SCALE
     global CIRCLE_RADIUS, GUIDE_MARGIN
     global FIX_SIZE, FIX_THICKNESS
     global FLASH_WIDTH, FLASH_HEIGHT, FLASH_Y_OFFSET
 
-    if fullscreen:
-        info = pygame.display.Info()
-        SCREEN_WIDTH  = int(info.current_w)
-        SCREEN_HEIGHT = int(info.current_h)
-    else:
-        SCREEN_WIDTH  = int(requested_w)
-        SCREEN_HEIGHT = int(requested_h)
-
-    # Scale relative to baseline; use min so everything fits on smaller dimension
+    SCREEN_WIDTH = int(width)
+    SCREEN_HEIGHT = int(height)
     UI_SCALE = min(SCREEN_WIDTH / float(BASE_W), SCREEN_HEIGHT / float(BASE_H))
 
-    # ---- scale geometry ----
     GEOM_SCALE = float(GEOM_SCALE_BASE) * UI_SCALE
 
-    # ---- scale UI pixel sizes ----
     CIRCLE_RADIUS = max(2, ui(CIRCLE_RADIUS_BASE))
-    GUIDE_MARGIN  = max(0, ui(GUIDE_MARGIN_BASE))
+    GUIDE_MARGIN = max(0, ui(GUIDE_MARGIN_BASE))
 
-    FIX_SIZE      = max(4, ui(FIX_SIZE_BASE))
+    FIX_SIZE = max(4, ui(FIX_SIZE_BASE))
     FIX_THICKNESS = max(1, ui(FIX_THICKNESS_BASE))
 
-    FLASH_WIDTH    = max(50, ui(FLASH_WIDTH_BASE))
-    FLASH_HEIGHT   = max(10, ui(FLASH_HEIGHT_BASE))
+    FLASH_WIDTH = max(50, ui(FLASH_WIDTH_BASE))
+    FLASH_HEIGHT = max(10, ui(FLASH_HEIGHT_BASE))
     FLASH_Y_OFFSET = max(0, ui(FLASH_Y_OFFSET_BASE))
+
+
+def configure_display_and_scaling(*, fullscreen: bool, requested_w: int, requested_h: int):
+    """
+    Sets SCREEN_WIDTH/SCREEN_HEIGHT based on fullscreen display resolution (or requested window),
+    computes UI_SCALE relative to BASE_W/BASE_H, and updates all scale-dependent globals.
+    """
+    if fullscreen:
+        info = pygame.display.Info()
+        width = int(info.current_w)
+        height = int(info.current_h)
+    else:
+        width = int(requested_w)
+        height = int(requested_h)
+    _apply_scaled_display_dimensions(width, height)
 
 
 def configure_scaling_from_surface(surface: pygame.Surface):
@@ -668,27 +671,7 @@ def configure_scaling_from_surface(surface: pygame.Surface):
     Use the *actual created* display surface size (important on macOS/Retina),
     then recompute UI_SCALE and all derived globals.
     """
-    global SCREEN_WIDTH, SCREEN_HEIGHT, UI_SCALE
-    global GEOM_SCALE
-    global CIRCLE_RADIUS, GUIDE_MARGIN
-    global FIX_SIZE, FIX_THICKNESS
-    global FLASH_WIDTH, FLASH_HEIGHT, FLASH_Y_OFFSET
-
-    SCREEN_WIDTH, SCREEN_HEIGHT = surface.get_size()
-
-    UI_SCALE = min(SCREEN_WIDTH / float(BASE_W), SCREEN_HEIGHT / float(BASE_H))
-
-    GEOM_SCALE = float(GEOM_SCALE_BASE) * UI_SCALE
-
-    CIRCLE_RADIUS = max(2, ui(CIRCLE_RADIUS_BASE))
-    GUIDE_MARGIN  = max(0, ui(GUIDE_MARGIN_BASE))
-
-    FIX_SIZE      = max(4, ui(FIX_SIZE_BASE))
-    FIX_THICKNESS = max(1, ui(FIX_THICKNESS_BASE))
-
-    FLASH_WIDTH    = max(50, ui(FLASH_WIDTH_BASE))
-    FLASH_HEIGHT   = max(10, ui(FLASH_HEIGHT_BASE))
-    FLASH_Y_OFFSET = max(0, ui(FLASH_Y_OFFSET_BASE))
+    _apply_scaled_display_dimensions(*surface.get_size())
     
     
 def truncnorm_sample(mu: float, sd: float, lo: float, hi: float,
@@ -1576,6 +1559,60 @@ def draw_text(screen, font, text, color, center, antialias=True):
     screen.blit(surf, rect)
 
 
+def compute_positions_at_time(trial: "TrialSpec", t: float) -> Dict[str, Any]:
+    """Compute aircraft positions at time t seconds from trial start."""
+    return {
+        "t": t,
+        "p1": (
+            int(round(float(trial.pos1_start_x) + float(trial.vel1_x) * t)),
+            int(round(float(trial.pos1_start_y) + float(trial.vel1_y) * t)),
+        ),
+        "p2": (
+            int(round(float(trial.pos2_start_x) + float(trial.vel2_x) * t)),
+            int(round(float(trial.pos2_start_y) + float(trial.vel2_y) * t)),
+        ),
+    }
+
+
+def compute_cpa(trial: "TrialSpec", max_t: Optional[float] = None) -> Dict[str, Any]:
+    """
+    Compute time of closest point of approach in seconds using screen coordinates.
+    If max_t is provided, clamp CPA time into [0, max_t].
+    """
+    x1 = float(trial.pos1_start_x)
+    y1 = float(trial.pos1_start_y)
+    x2 = float(trial.pos2_start_x)
+    y2 = float(trial.pos2_start_y)
+
+    vx1 = float(trial.vel1_x)
+    vy1 = float(trial.vel1_y)
+    vx2 = float(trial.vel2_x)
+    vy2 = float(trial.vel2_y)
+
+    rx = x2 - x1
+    ry = y2 - y1
+    rvx = vx2 - vx1
+    rvy = vy2 - vy1
+
+    rv2 = rvx * rvx + rvy * rvy
+    if rv2 <= 1e-12:
+        t_cpa = 0.0
+    else:
+        t_cpa = -(rx * rvx + ry * rvy) / rv2
+
+    if max_t is None:
+        t_cpa = max(0.0, t_cpa)
+    else:
+        t_cpa = max(0.0, min(float(max_t), t_cpa))
+
+    pos = compute_positions_at_time(trial, t_cpa)
+    return {
+        "t_cpa": t_cpa,
+        "p1": pos["p1"],
+        "p2": pos["p2"],
+    }
+
+
 def draw_guide_cross(screen, center_x, center_y, min_sep,
                      color=GUIDE_COLOR, thickness=1, tick_len=8):
     """
@@ -2095,27 +2132,6 @@ def make_base_name(args: argparse.Namespace, run_ts: str) -> str:
     return str(run_ts)
 
 
-def wrap_text_to_width(font, text: str, max_width: int) -> List[str]:
-    """
-    Wrap a single-line string into multiple lines so each line fits max_width (pixels).
-    """
-    words = str(text).split()
-    if not words:
-        return [""]
-
-    lines = []
-    cur = words[0]
-    for w in words[1:]:
-        test = f"{cur} {w}"
-        if font.size(test)[0] <= max_width:
-            cur = test
-        else:
-            lines.append(cur)
-            cur = w
-    lines.append(cur)
-    return lines
-  
-  
 # ------------------------- Questionnaire screens ------------------------
 
 def run_participant_number_screen(screen, clock, font) -> Dict[str, Any]:
@@ -3984,6 +4000,354 @@ class ATCLabApp:
         base = make_base_name(self.args, self.run_ts)
         return f"{self.participant_tag}_{base}"
 
+    def _participant_value(self):
+        return "" if self.participant_id is None else int(self.participant_id)
+
+    def _make_continue_button_rect(self) -> pygame.Rect:
+        rect = pygame.Rect(0, 0, ui(220), ui(64))
+        rect.centerx = SCREEN_WIDTH // 2
+        rect.bottom = SCREEN_HEIGHT - ui(90)
+        return rect
+
+    def _draw_continue_button(self, rect: pygame.Rect, *, enabled: bool, label: str = "Continue"):
+        if enabled:
+            pygame.draw.rect(self.screen, (50, 50, 50), rect, 0, border_radius=ui(8))
+            pygame.draw.rect(self.screen, TEXT_COLOR, rect, max(1, ui(3)), border_radius=ui(8))
+            label_col = TEXT_COLOR
+        else:
+            pygame.draw.rect(self.screen, (35, 35, 35), rect, 0, border_radius=ui(8))
+            pygame.draw.rect(self.screen, (110, 110, 110), rect, max(1, ui(2)), border_radius=ui(8))
+            label_col = (140, 140, 140)
+        draw_text(self.screen, self.font, label, label_col, rect.center)
+
+    def _show_centered_continue_screen(self, *, title: str, lines: List[str]) -> Dict[str, Any]:
+        btn_rect = self._make_continue_button_rect()
+        min_show_s = float(MIN_SCREEN_TIME_MS) / 1000.0
+        start_time = time.perf_counter()
+
+        while True:
+            self.clock.tick(FPS)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    continue
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if btn_rect.collidepoint(event.pos) and (time.perf_counter() - start_time) >= min_show_s:
+                        return {"quit": False}
+                if event.type == pygame.KEYDOWN and is_hard_quit_event(event):
+                    return {"quit": True}
+
+            self.screen.fill(BG_COLOR)
+            draw_centered_instruction_screen(
+                screen=self.screen,
+                title_font=self.title_font,
+                body_font=self.font,
+                bold_font=self.font_bold,
+                title=title,
+                lines=lines,
+            )
+            self._draw_continue_button(
+                btn_rect,
+                enabled=(time.perf_counter() - start_time) >= min_show_s,
+            )
+            pygame.display.flip()
+
+    def _ensure_results_dir(self):
+        os.makedirs(RESULTS_DIR, exist_ok=True)
+
+    def _build_block_output_path(self, *, block_order: int, block_name: str, suffix: str = "") -> str:
+        base = self.base_with_participant()
+        tag = block_tag(block_order)
+        bname = str(block_name).upper()
+        return os.path.join(RESULTS_DIR, f"results_{base}_{tag}_{bname}{suffix}.csv")
+
+    def _write_csv_rows(
+        self,
+        *,
+        out_path: str,
+        fieldnames: List[str],
+        rows: List[Dict[str, Any]],
+        mode: str = "w",
+        write_header: bool = True,
+    ):
+        with open(out_path, mode, newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+            if write_header:
+                writer.writeheader()
+            if rows:
+                writer.writerows(rows)
+
+    def _copy_rows_with_defaults(self, rows: List[Dict[str, Any]], fieldnames: List[str]) -> List[Dict[str, Any]]:
+        out = []
+        for row in rows:
+            rr = dict(row)
+            for key in fieldnames:
+                if key not in rr or rr[key] is None:
+                    rr[key] = ""
+            out.append(rr)
+        return out
+
+    def _copy_rows_with_block_metadata(
+        self,
+        rows: List[Dict[str, Any]],
+        *,
+        block_name: str,
+        block_idx: int,
+        fieldnames: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        out = []
+        for row in rows:
+            rr = dict(row)
+            rr["participant_id"] = self._participant_value()
+            rr["block"] = str(block_name)
+            rr["block_idx"] = int(block_idx)
+            if fieldnames is not None:
+                for key in fieldnames:
+                    if key not in rr or rr[key] is None:
+                        rr[key] = ""
+            out.append(rr)
+        return out
+
+    def _normalize_block_name(self, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        value = str(value).strip()
+        if value == "":
+            return None
+        return value.lstrip("-").strip().upper()
+
+    def _find_block(self, name_upper: str):
+        for i, block in enumerate(BLOCKS):
+            bname = str(block.get("name", f"BLOCK{i+1}")).strip().upper()
+            if bname == name_upper:
+                return (i, block)
+        return None
+
+    def _resolve_blocks_to_run(self):
+        requested = self._normalize_block_name(getattr(self.args, "block", None))
+
+        if requested is not None:
+            found = self._find_block(requested)
+            if found is None:
+                valid = ", ".join(str(b.get("name", f"BLOCK{i+1}")) for i, b in enumerate(BLOCKS))
+                raise SystemExit(f"[CLI] Unknown --block {requested!r}. Valid block names: {valid}")
+            return [found]
+
+        calibration = self._find_block("CALIBRATION")
+        manual = self._find_block("MANUAL")
+        auto1 = self._find_block("AUTOMATION1")
+        auto2 = self._find_block("AUTOMATION2")
+
+        missing = [name for name, block in [
+            ("CALIBRATION", calibration),
+            ("MANUAL", manual),
+            ("AUTOMATION1", auto1),
+            ("AUTOMATION2", auto2),
+        ] if block is None]
+        if missing:
+            raise SystemExit(f"[BLOCKS] Missing block(s) in BLOCKS: {', '.join(missing)}")
+
+        order_names, order_id = counterbalanced_block_ordering(self.participant_id)
+        name_to_block = {
+            "MANUAL": manual,
+            "AUTOMATION1": auto1,
+            "AUTOMATION2": auto2,
+        }
+        print(f"[CB-BLOCKS] participant_id={self.participant_id} => ordering #{order_id}: {order_names}")
+        return [calibration] + [name_to_block[name] for name in order_names]
+
+    def _set_key_mapping(self):
+        mapping = counterbalanced_key_mapping(self.participant_id)
+
+        global KEY_CONFLICT, KEY_NONCONFLICT
+        KEY_CONFLICT = mapping["conflict_key"]
+        KEY_NONCONFLICT = mapping["nonconflict_key"]
+
+        self.key_conflict_label = pygame.key.name(KEY_CONFLICT).upper()
+        self.key_nonconf_label = pygame.key.name(KEY_NONCONFLICT).upper()
+        self.key_pm_label = pygame.key.name(pygame.K_9).upper()
+
+        print(
+            f"[CB-KEYS] {self.key_conflict_label}=CONFLICT, "
+            f"{self.key_nonconf_label}=NON-CONFLICT, "
+            f"{self.key_pm_label}=PM"
+        )
+
+    def _resolve_trial_generation_params(self, block_name: str) -> Dict[str, Any]:
+        params = {
+            "mu_low_start": 2.5,
+            "mu_high_start": 7.5,
+            "doms_sd": 0.5,
+            "doms_sd_low": None,
+            "doms_sd_high": None,
+        }
+
+        if str(block_name).upper() not in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
+            return params
+
+        calib = dict(self.calib_doms_params) if self.calib_doms_params else None
+        if calib is None:
+            calib = load_latest_calibration_doms_params(
+                results_dir=RESULTS_DIR,
+                participant_tag=self.participant_tag,
+            )
+            if calib is not None:
+                print(f"[{block_name}] Loaded CALIBRATION DOMS params from disk:", calib)
+
+        if calib is not None:
+            params["mu_low_start"] = float(calib["mu_low_start"])
+            params["mu_high_start"] = float(calib["mu_high_start"])
+            params["doms_sd_low"] = float(calib["doms_sd_low"])
+            params["doms_sd_high"] = float(calib["doms_sd_high"])
+        return params
+
+    def _annotate_trial_result(self, result: Dict[str, Any], *, block_name: str, block_idx: int):
+        result["block"] = block_name
+        result["block_idx"] = int(block_idx)
+        result["participant_id"] = self._participant_value()
+        result["key_conflict"] = self.key_conflict_label
+        result["key_nonconf"] = self.key_nonconf_label
+        result["key_pm"] = self.key_pm_label if self.has_pm_design else ""
+
+    def _update_staircase_from_result(self, trial: TrialSpec, result: Dict[str, Any]):
+        if not self.staircase.on or bool(getattr(trial, "is_PM", False)):
+            return
+
+        correct = result.get("correct", "")
+        if correct in (0, 1, "0", "1"):
+            self.staircase.update(correct=bool(int(correct)))
+        else:
+            self.staircase.update(correct=False)
+
+    def _reset_block_buffers(self):
+        self.results = []
+        self.postblock_slider_responses = []
+        self.postblock_responses = []
+
+    def _prepare_block(self, block: Dict[str, Any], block_name: str):
+        apply_block_settings(block)
+        self.drt_enabled = bool(block.get("DRT_ON", self.args.drt))
+        print(f"[{block_name}] DRT_ON={self.drt_enabled}")
+
+        if bool(block.get("RESET_STAIRCASE", True)):
+            self.reset_staircase(on=STAIRCASE_ON, target_acc=TARGET_ACC)
+        else:
+            self.staircase.on = bool(STAIRCASE_ON)
+            self.staircase.target_acc = float(TARGET_ACC)
+
+        self._reset_block_buffers()
+
+    def _summary_exclusion_trials(self, block_name: str) -> int:
+        if str(block_name).upper() in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
+            return 0
+        return int(STAIRCASE_BURNIN) if bool(STAIRCASE_ON) else 0
+
+    def _cache_calibration_doms_params(self, block_name: str):
+        if str(block_name).upper() != "CALIBRATION":
+            return
+
+        stats = dict(self.doms_stats or {})
+
+        def _ok(value):
+            return isinstance(value, (int, float)) and (not math.isnan(value)) and math.isfinite(value)
+
+        if (
+            stats.get("n_conflict", 0) >= 5
+            and stats.get("n_nonconflict", 0) >= 5
+            and _ok(stats.get("mean_conflict"))
+            and _ok(stats.get("sd_conflict"))
+            and _ok(stats.get("mean_nonconflict"))
+            and _ok(stats.get("sd_nonconflict"))
+        ):
+            self.calib_doms_params = {
+                "mu_low_start": float(stats["mean_conflict"]),
+                "mu_high_start": float(stats["mean_nonconflict"]),
+                "doms_sd_low": max(1e-6, float(stats["sd_conflict"])),
+                "doms_sd_high": max(1e-6, float(stats["sd_nonconflict"])),
+            }
+            print("[CALIBRATION] Cached DOMS params for later blocks:", self.calib_doms_params)
+        else:
+            self.calib_doms_params = None
+            print("[CALIBRATION] DOMS stats insufficient; not caching for later blocks.")
+
+    def _run_postblock_slider_flow(self, *, block_name: str, block_order: int) -> bool:
+        if not ENABLE_POSTBLOCK_SLIDERS:
+            return False
+
+        slider_responses = run_postblock_slider_questions(
+            self.screen,
+            self.clock,
+            self.font,
+            block_name=block_name,
+            title_font=self.title_font,
+        )
+        if isinstance(slider_responses, dict) and slider_responses.get("quit"):
+            return True
+
+        self.postblock_slider_responses = slider_responses if isinstance(slider_responses, list) else []
+        self.save_postblock_slider_results(
+            block_order=block_order,
+            block_name=block_name,
+            block_idx=block_order,
+        )
+        self.all_postblock_slider_responses.extend(
+            self._copy_rows_with_block_metadata(
+                self.postblock_slider_responses,
+                block_name=block_name,
+                block_idx=block_order,
+            )
+        )
+        return False
+
+    def _run_postblock_questionnaire_flow(self, *, block_name: str, block_order: int) -> bool:
+        if not ENABLE_POSTBLOCK_QUESTIONS:
+            return False
+
+        intro = run_questionnaire_intro_screen(self.screen, self.clock, self.font, self.title_font)
+        if isinstance(intro, dict) and intro.get("quit"):
+            return True
+
+        questionnaire = run_postblock_questionnaire(
+            self.screen,
+            self.clock,
+            self.font,
+            base_name=block_name,
+            label_font=self.label_font,
+        )
+        if isinstance(questionnaire, dict) and questionnaire.get("quit"):
+            return True
+
+        self.postblock_responses = questionnaire if isinstance(questionnaire, list) else []
+        self.save_postblock_results(
+            block_order=block_order,
+            block_name=block_name,
+            block_idx=block_order,
+        )
+        self.all_postblock_responses.extend(
+            self._copy_rows_with_block_metadata(
+                self.postblock_responses,
+                block_name=block_name,
+                block_idx=block_order,
+            )
+        )
+        return False
+
+    def _finalize_experiment(self, *, ran_multiple_blocks: bool):
+        if ran_multiple_blocks:
+            self.save_combined_results_csv(suffix="b00_ALL")
+
+        self.save_postblock_all_results()
+        self.save_postblock_slider_all_results()
+
+        final_score_pct = self.compute_final_performance_score()
+        run_experiment_complete_screen(
+            self.screen,
+            self.clock,
+            self.font,
+            performance_score_pct=final_score_pct,
+        )
+        pygame.quit()
+
     def reset_staircase(self, *, on: bool, target_acc: float):
         # preserve starting params from globals
         self.staircase = DomGapStaircase(
@@ -4193,10 +4557,8 @@ class ATCLabApp:
         return 100.0 * n_correct / n_total
   
     def show_instructions(self):
-
         conf_letter = pygame.key.name(KEY_CONFLICT).upper()
         nonconf_letter = pygame.key.name(KEY_NONCONFLICT).upper()
-
         key_line_1 = f"Press {conf_letter} if you think the aircraft will pass within 5nm (CONFLICT)"
         key_line_2 = f"Press {nonconf_letter} if you think the aircraft will not pass within 5nm (NON-CONFLICT)"
 
@@ -4238,62 +4600,15 @@ class ATCLabApp:
                 "Try to respond as quickly and accurately as possible",
             ]
 
-        btn_w = ui(220)
-        btn_h = ui(64)
-        btn_rect = pygame.Rect(0, 0, btn_w, btn_h)
-        btn_rect.centerx = SCREEN_WIDTH // 2
-        btn_rect.bottom = SCREEN_HEIGHT - ui(90)
-
-        min_show_s = float(MIN_SCREEN_TIME_MS) / 1000.0
-        start_time = time.perf_counter()
-
-        showing_instructions = True
-
-        while showing_instructions:
-            self.clock.tick(FPS)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pass
-
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if btn_rect.collidepoint(event.pos):
-                        if (time.perf_counter() - start_time) >= min_show_s:
-                            showing_instructions = False
-
-                if event.type == pygame.KEYDOWN:
-                    if is_hard_quit_event(event):
-                        pygame.quit()
-                        raise SystemExit
-
-            self.screen.fill(BG_COLOR)
-
-            draw_centered_instruction_screen(
-                screen=self.screen,
-                title_font=self.title_font,
-                body_font=self.font,
-                bold_font=self.font_bold,
-                title="CONFLICT DETECTION TASK",
-                lines=instructions
-            )
-
-            enabled = (time.perf_counter() - start_time) >= min_show_s
-
-            if enabled:
-                pygame.draw.rect(self.screen, (50, 50, 50), btn_rect, 0, border_radius=ui(8))
-                pygame.draw.rect(self.screen, TEXT_COLOR, btn_rect, max(1, ui(3)), border_radius=ui(8))
-                label_col = TEXT_COLOR
-            else:
-                pygame.draw.rect(self.screen, (35, 35, 35), btn_rect, 0, border_radius=ui(8))
-                pygame.draw.rect(self.screen, (110, 110, 110), btn_rect, max(1, ui(2)), border_radius=ui(8))
-                label_col = (140, 140, 140)
-
-            draw_text(self.screen, self.font, "Continue", label_col, btn_rect.center)
-
-            pygame.display.flip()
+        result = self._show_centered_continue_screen(
+            title="CONFLICT DETECTION TASK",
+            lines=instructions,
+        )
+        if result.get("quit"):
+            pygame.quit()
+            raise SystemExit
 
     def show_block_instructions(self, block_name: str):
-
         key = str(block_name).strip().upper()
         slides = BLOCK_INSTRUCTIONS.get(key, None)
 
@@ -4304,137 +4619,45 @@ class ATCLabApp:
         if isinstance(slides, dict):
             slides = [slides]
 
-        btn_w = ui(220)
-        btn_h = ui(64)
-
-        btn_rect = pygame.Rect(0, 0, btn_w, btn_h)
-        btn_rect.centerx = SCREEN_WIDTH // 2
-        btn_rect.bottom = SCREEN_HEIGHT - ui(90)
-
         for slide in slides:
-
             title = str(slide.get("title", f"{key} BLOCK")).strip()
             body = str(slide.get("body", "")).strip()
-
             side_margin = ui(120)
             max_w = max(ui(600), SCREEN_WIDTH - 2 * side_margin)
             body_lines = wrap_text_lines(self.font, body, max_w)
-
-            min_show_s = float(MIN_SCREEN_TIME_MS) / 1000.0
-            start_time = time.perf_counter()
-
-            showing = True
-            while showing:
-                self.clock.tick(FPS)
-
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pass
-
-                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        if btn_rect.collidepoint(event.pos):
-                            if (time.perf_counter() - start_time) >= min_show_s:
-                                showing = False
-
-                    if event.type == pygame.KEYDOWN:
-                        if is_hard_quit_event(event):
-                            return {"quit": True}
-
-                self.screen.fill(BG_COLOR)
-
-                draw_centered_instruction_screen(
-                    screen=self.screen,
-                    title_font=self.title_font,
-                    body_font=self.font,
-                    bold_font=self.font_bold,
-                    title=title,
-                    lines=body_lines
-                )
-
-                # Continue button in the same style as questionnaire screens
-                enabled = (time.perf_counter() - start_time) >= min_show_s
-
-                if enabled:
-                    pygame.draw.rect(self.screen, (50, 50, 50), btn_rect, 0, border_radius=ui(8))
-                    pygame.draw.rect(self.screen, TEXT_COLOR, btn_rect, max(1, ui(3)), border_radius=ui(8))
-                    label_col = TEXT_COLOR
-                else:
-                    pygame.draw.rect(self.screen, (35, 35, 35), btn_rect, 0, border_radius=ui(8))
-                    pygame.draw.rect(self.screen, (110, 110, 110), btn_rect, max(1, ui(2)), border_radius=ui(8))
-                    label_col = (140, 140, 140)
-
-                draw_text(self.screen, self.font, "Continue", label_col, btn_rect.center)
-
-                pygame.display.flip()
+            result = self._show_centered_continue_screen(title=title, lines=body_lines)
+            if result.get("quit"):
+                return {"quit": True}
 
         return {"quit": False}
   
     def run_trials(self, n_trials: int, block_name: str, block_idx: int):
         total_trials = n_trials
-
-        # ------------------ DOMS generation parameters for THIS block ------------------
-        # Defaults (used for TRAINING + CALIBRATION unless overrided elsewhere)
-        mu_low_start  = 2.5   # conflict mean (<=5)
-        mu_high_start = 7.5   # non-conflict mean (>=5)
-        doms_sd       = 0.5   # fallback SD if per-class SD not provided
-        doms_sd_low   = None  # conflict SD (optional)
-        doms_sd_high  = None  # non-conflict SD (optional)
-
-        # If this is MANUAL or AUTOMATION, and we cached CALIBRATION realised mean/sd, use them.
-        # self.calib_doms_params should look like:
-        #   {"mu_low_start": ..., "mu_high_start": ..., "doms_sd_low": ..., "doms_sd_high": ...}
-        if str(block_name).upper() in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
-            params = None
-
-            # 1) Prefer in-memory cached calibration from THIS run
-            if self.calib_doms_params:
-                params = dict(self.calib_doms_params)
-
-            # 2) Fallback to most recent CALIBRATION summary on disk
-            if params is None:
-                params = load_latest_calibration_doms_params(
-                    results_dir=RESULTS_DIR,
-                    participant_tag=self.participant_tag  # e.g. "p007"
-                )
-                
-                if params is not None:
-                    print(f"[{block_name}] Loaded CALIBRATION DOMS params from disk:", params)
-
-            # 3) Apply if we got something
-            if params is not None:
-                mu_low_start  = float(params["mu_low_start"])
-                mu_high_start = float(params["mu_high_start"])
-                doms_sd_low   = float(params["doms_sd_low"])
-                doms_sd_high  = float(params["doms_sd_high"])
+        params = self._resolve_trial_generation_params(block_name)
 
         print(
             f"[{block_name}] DOMS params: "
-            f"mu_low={mu_low_start:.3f}, sd_low={('NA' if doms_sd_low is None else f'{doms_sd_low:.3f}')}; "
-            f"mu_high={mu_high_start:.3f}, sd_high={('NA' if doms_sd_high is None else f'{doms_sd_high:.3f}')}"
+            f"mu_low={params['mu_low_start']:.3f}, sd_low={('NA' if params['doms_sd_low'] is None else f'{params['doms_sd_low']:.3f}')}; "
+            f"mu_high={params['mu_high_start']:.3f}, sd_high={('NA' if params['doms_sd_high'] is None else f'{params['doms_sd_high']:.3f}')}"
         )
 
-        # ------------------ Trial loop ------------------
         for i in range(total_trials):
             trial = build_atc_trial(
                 x_dim=SCREEN_WIDTH,
                 aspect_ratio=SCREEN_HEIGHT / SCREEN_WIDTH,
                 angle_deg=90.0,
                 speed_range=(400, 650),
-
-                # Use block-specific params
-                mu_low_start=mu_low_start,
-                mu_high_start=mu_high_start,
-                doms_sd=doms_sd,
-                doms_sd_low=doms_sd_low,
-                doms_sd_high=doms_sd_high,
-
+                mu_low_start=params["mu_low_start"],
+                mu_high_start=params["mu_high_start"],
+                doms_sd=params["doms_sd"],
+                doms_sd_low=params["doms_sd_low"],
+                doms_sd_high=params["doms_sd_high"],
                 doms_low_bounds=(0.0, DOMS_THRESHOLD_NM - DOMS_EPS_NM),
                 doms_high_bounds=(DOMS_THRESHOLD_NM + DOMS_EPS_NM, 10.0),
-
                 ttms_range=(140, 210),
                 flight_level=370,
                 default_deadline=DEADLINE_SEC,
-                callsigns=None,  # or provide a pool list
+                callsigns=None,
                 enforce_unique_callsigns=True,
                 used_callsigns=self.used_callsigns,
                 pm_prop=self.args.pm_prop,
@@ -4457,50 +4680,24 @@ class ATCLabApp:
                 run_ts=self.run_ts,
             )
 
-            res["block"] = block_name
-            res["block_idx"] = int(block_idx)
-            res["participant_id"] = "" if self.participant_id is None else int(self.participant_id)
-            res["key_conflict"] = self.key_conflict_label
-            res["key_nonconf"] = self.key_nonconf_label
-            res["key_pm"] = self.key_pm_label if self.has_pm_design else ""
+            self._annotate_trial_result(res, block_name=block_name, block_idx=block_idx)
 
             if "quit" in res and res["quit"]:
                 break
 
             self.results.append(res)
-
-            # Staircase update (exclude PM targets)
-            if self.staircase.on:
-                is_pm_trial = bool(getattr(trial, "is_PM", False))
-                c = res.get("correct", "")
-                if not is_pm_trial:
-                    if c in (0, 1, "0", "1"):
-                        self.staircase.update(correct=bool(int(c)))
-                    else:
-                        # Treat timeout / missing response as incorrect
-                        self.staircase.update(correct=False)
+            self._update_staircase_from_result(trial, res)
 
     def save_results_csv(self, *, block_order: int, block_name: str):
         if not getattr(self, "results", None):
             print("No results to save.")
             return None
 
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
-        base = self.base_with_participant()
-        tag = block_tag(block_order)
-        bname = str(block_name).upper()
-
-        out_path = os.path.join(RESULTS_DIR, f"results_{base}_{tag}_{bname}.csv")
-
+        self._ensure_results_dir()
+        out_path = self._build_block_output_path(block_order=block_order, block_name=block_name)
         fieldnames = list(ALL_RESULT_FIELDS)
         rows = [normalize_result_row(r, fieldnames) for r in self.results]
-
-        with open(out_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            writer.writerows(rows)
-
+        self._write_csv_rows(out_path=out_path, fieldnames=fieldnames, rows=rows)
         print(f"Results saved to: {out_path}")
         return out_path
 
@@ -4509,19 +4706,12 @@ class ATCLabApp:
             print("No combined results to save.")
             return None
 
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
+        self._ensure_results_dir()
         base = self.base_with_participant()
         out_path = os.path.join(RESULTS_DIR, f"results_{base}_{suffix}.csv")
-
         fieldnames = list(ALL_RESULT_FIELDS)
         rows = [normalize_result_row(r, fieldnames) for r in self.all_results]
-
-        with open(out_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            writer.writerows(rows)
-  
+        self._write_csv_rows(out_path=out_path, fieldnames=fieldnames, rows=rows)
         print(f"Combined results saved to: {out_path}")
         return out_path
 
@@ -4532,14 +4722,12 @@ class ATCLabApp:
         if not self.postblock_slider_responses:
             return
 
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
-        base = self.base_with_participant()
-        tag = block_tag(block_order)
-        bname = str(block_name).upper()
-
-        out_path = os.path.join(RESULTS_DIR, f"results_{base}_{tag}_{bname}_POSTBLOCK_SLIDERS.csv")
-
+        self._ensure_results_dir()
+        out_path = self._build_block_output_path(
+            block_order=block_order,
+            block_name=block_name,
+            suffix="_POSTBLOCK_SLIDERS",
+        )
         fieldnames = [
             "participant_id",
             "block",
@@ -4551,33 +4739,22 @@ class ATCLabApp:
             "scale_min",
             "scale_max",
         ]
-
-        rows = []
-        pid = "" if self.participant_id is None else int(self.participant_id)
-
-        for r in self.postblock_slider_responses:
-            rr = dict(r)
-            rr["participant_id"] = pid
-            rr["block"] = str(block_name)
-            rr["block_idx"] = int(block_idx)
-            rows.append(rr)
-
-        with open(out_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            writer.writerows(rows)
-
+        rows = self._copy_rows_with_block_metadata(
+            self.postblock_slider_responses,
+            block_name=block_name,
+            block_idx=block_idx,
+            fieldnames=fieldnames,
+        )
+        self._write_csv_rows(out_path=out_path, fieldnames=fieldnames, rows=rows)
         print(f"Saved {len(rows)} post-block slider responses to {out_path}")
 
     def save_postblock_slider_all_results(self):
         """
         Save all post-block slider responses across blocks into one CSV.
         """
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
+        self._ensure_results_dir()
         base = self.base_with_participant()
         out_path = os.path.join(RESULTS_DIR, f"results_{base}_b00_POSTBLOCK_SLIDERS_ALL.csv")
-
         fieldnames = [
             "participant_id",
             "block",
@@ -4589,25 +4766,11 @@ class ATCLabApp:
             "scale_min",
             "scale_max",
         ]
-
-        rows_src = getattr(self, "all_postblock_slider_responses", None)
-        if rows_src is None:
-            rows_src = []
-
-        rows = []
-        for r in rows_src:
-            rr = dict(r)
-            for k in fieldnames:
-                if k not in rr or rr[k] is None:
-                    rr[k] = ""
-            rows.append(rr)
-
-        with open(out_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            if rows:
-                writer.writerows(rows)
-
+        rows = self._copy_rows_with_defaults(
+            getattr(self, "all_postblock_slider_responses", None) or [],
+            fieldnames,
+        )
+        self._write_csv_rows(out_path=out_path, fieldnames=fieldnames, rows=rows)
         print(f"Combined post-block slider responses saved to: {out_path} (n_rows={len(rows)})")
         return out_path
   
@@ -4619,14 +4782,12 @@ class ATCLabApp:
         if not self.postblock_responses:
             return
 
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
-        base = self.base_with_participant()
-        tag = block_tag(block_order)
-        bname = str(block_name).upper()
-
-        q_path = os.path.join(RESULTS_DIR, f"results_{base}_{tag}_{bname}_POSTBLOCK.csv")
-
+        self._ensure_results_dir()
+        q_path = self._build_block_output_path(
+            block_order=block_order,
+            block_name=block_name,
+            suffix="_POSTBLOCK",
+        )
         q_fieldnames = [
             "participant_id",
             "block",
@@ -4640,24 +4801,19 @@ class ATCLabApp:
             "scale_max",
         ]
 
-        write_header = not os.path.exists(q_path)
-
-        pid = "" if self.participant_id is None else int(self.participant_id)
-
-        rows = []
-        for r in self.postblock_responses:
-            rr = dict(r)
-            rr["participant_id"] = pid
-            rr["block"] = str(block_name)
-            rr["block_idx"] = int(block_idx)
-            rows.append(rr)
-
-        with open(q_path, "a", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=q_fieldnames, extrasaction="ignore")
-            if write_header:
-                writer.writeheader()
-            writer.writerows(rows)
-
+        rows = self._copy_rows_with_block_metadata(
+            self.postblock_responses,
+            block_name=block_name,
+            block_idx=block_idx,
+            fieldnames=q_fieldnames,
+        )
+        self._write_csv_rows(
+            out_path=q_path,
+            fieldnames=q_fieldnames,
+            rows=rows,
+            mode="a",
+            write_header=not os.path.exists(q_path),
+        )
         print(f"Saved {len(rows)} post-block responses to {q_path}")
 
     def save_postblock_all_results(self):
@@ -4666,11 +4822,9 @@ class ATCLabApp:
         Filename ends with: POSTBLOCK_ALL.csv
         Always writes the file (even if zero rows), so you reliably get the header.
         """
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-
+        self._ensure_results_dir()
         base = self.base_with_participant()
         out_path = os.path.join(RESULTS_DIR, f"results_{base}_b00_POSTBLOCK_ALL.csv")
-
         q_fieldnames = [
             "participant_id",
             "block",
@@ -4683,30 +4837,15 @@ class ATCLabApp:
             "scale_min",
             "scale_max",
         ]
-
-        rows_src = getattr(self, "all_postblock_responses", None)
-        if rows_src is None:
-            rows_src = []
-
-        rows = []
-        for r in rows_src:
-            rr = dict(r)
-            for k in q_fieldnames:
-                if k not in rr or rr[k] is None:
-                    rr[k] = ""
-            rows.append(rr)
-
-        with open(out_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=q_fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            if rows:
-                writer.writerows(rows)
-
+        rows = self._copy_rows_with_defaults(
+            getattr(self, "all_postblock_responses", None) or [],
+            q_fieldnames,
+        )
+        self._write_csv_rows(out_path=out_path, fieldnames=q_fieldnames, rows=rows)
         print(f"Combined post-block responses saved to: {out_path} (n_rows={len(rows)})")
         return out_path
 
     def run(self):
-        # ---- Participant number screen (required) ----
         pid_res = run_participant_number_screen(self.screen, self.clock, self.font)
         if isinstance(pid_res, dict) and pid_res.get("quit"):
             pygame.quit()
@@ -4714,270 +4853,61 @@ class ATCLabApp:
 
         self.participant_id = int(pid_res["participant"])
         self.participant_tag = f"p{self.participant_id:03d}"
+        self._set_key_mapping()
+        blocks_to_run = self._resolve_blocks_to_run()
 
-        # ---- Counterbalanced key mapping ----
-        m = counterbalanced_key_mapping(self.participant_id)
-
-        global KEY_CONFLICT, KEY_NONCONFLICT
-        KEY_CONFLICT = m["conflict_key"]
-        KEY_NONCONFLICT = m["nonconflict_key"]
-
-        # Store human-readable key names
-        self.key_conflict_label = pygame.key.name(KEY_CONFLICT).upper()
-        self.key_nonconf_label = pygame.key.name(KEY_NONCONFLICT).upper()
-        self.key_pm_label = pygame.key.name(pygame.K_9).upper()
-
-        print(
-            f"[CB-KEYS] {self.key_conflict_label}=CONFLICT, "
-            f"{self.key_nonconf_label}=NON-CONFLICT, "
-            f"{self.key_pm_label}=PM"
-        )
-
-        # ---- Optional single-block selection via CLI ----
-        def _norm_block_name(s: Optional[str]) -> Optional[str]:
-            if s is None:
-                return None
-            s = str(s).strip()
-            if s == "":
-                return None
-            # tolerate "--block -calibration"
-            s = s.lstrip("-").strip()
-            return s.upper()
-
-        requested = _norm_block_name(getattr(self.args, "block", None))
-
-        def _find_block(name_upper: str):
-            for i, b in enumerate(BLOCKS):
-                bname = str(b.get("name", f"BLOCK{i+1}")).strip().upper()
-                if bname == name_upper:
-                    return (i, b)
-            return None
-
-        if requested is None:
-            # ---- Counterbalanced MANUAL/AUTOMATION1/AUTOMATION2 order after TRAINING+CALIBRATION ----
-            # training    = _find_block("TRAINING")
-            calibration = _find_block("CALIBRATION")
-            manual      = _find_block("MANUAL")
-            auto1       = _find_block("AUTOMATION1")
-            auto2       = _find_block("AUTOMATION2")
-
-            missing = [n for n, x in [
-                # ("TRAINING", training),
-                ("CALIBRATION", calibration),
-                ("MANUAL", manual),
-                ("AUTOMATION1", auto1),
-                ("AUTOMATION2", auto2),
-            ] if x is None]
-            if missing:
-                raise SystemExit(f"[BLOCKS] Missing block(s) in BLOCKS: {', '.join(missing)}")
-
-            (order_names, order_id) = counterbalanced_block_ordering(self.participant_id)
-            name_to_block = {
-                "MANUAL": manual,
-                "AUTOMATION1": auto1,
-                "AUTOMATION2": auto2,
-            }
-
-            # blocks_to_run = [training, calibration] + [name_to_block[n] for n in order_names]
-            blocks_to_run = [calibration] + [name_to_block[n] for n in order_names]
-            print(f"[CB-BLOCKS] participant_id={self.participant_id} => ordering #{order_id}: {order_names}")
-
-        else:
-            found = _find_block(requested)
-            if found is None:
-                valid = ", ".join(str(b.get("name", f"BLOCK{i+1}")) for i, b in enumerate(BLOCKS))
-                raise SystemExit(f"[CLI] Unknown --block {requested!r}. Valid block names: {valid}")
-
-            blocks_to_run = [found]
-
-        # ---- Run selected blocks ----
         for loop_idx, (b_idx, block) in enumerate(blocks_to_run):
             is_last_block = (loop_idx == len(blocks_to_run) - 1)
-
             name = str(block.get("name", f"BLOCK{b_idx+1}"))
             n_trials = int(block.get("N_TRIALS", N_TRIALS))
-
-            # ---- General task instructions before every block ----
             self.show_instructions()
-
-            # ---- Block-specific instruction screen ----
             bi = self.show_block_instructions(name)
             if isinstance(bi, dict) and bi.get("quit"):
                 pygame.quit()
                 return
-
-            # ---- Generic pre-block screen ----
             pre = run_preblock_screen(self.screen, self.clock, self.font, name)
             if isinstance(pre, dict) and pre.get("quit"):
                 pygame.quit()
                 return
+            self._prepare_block(block, name)
 
-            # Apply block-level toggles (automation, fixation, staircase, questionnaires, etc.)
-            apply_block_settings(block)
-            
-            # ---- Per-block DRT toggle ----
-            # Block flag overrides CLI --drt for that block.
-            self.drt_enabled = bool(block.get("DRT_ON", self.args.drt))
-            print(f"[{name}] DRT_ON={self.drt_enabled}")
-
-            # Reset staircase if requested
-            reset_st = bool(block.get("RESET_STAIRCASE", True))
-            if reset_st:
-                self.reset_staircase(on=STAIRCASE_ON, target_acc=TARGET_ACC)
-            else:
-                self.staircase.on = bool(STAIRCASE_ON)
-                self.staircase.target_acc = float(TARGET_ACC)
-
-            # Reset per-block buffers
-            self.results = []
-            self.postblock_slider_responses = []
-            self.postblock_responses = []
-
-            presented_order = loop_idx + 1  # <-- THIS is the order shown in the session: b01, b02, ...
-
-            # Run trials and save per-block trial csv
+            presented_order = loop_idx + 1
             self.run_trials(n_trials=n_trials, block_name=name, block_idx=presented_order)
             self.save_results_csv(block_order=presented_order, block_name=name)
-
-            # Append into across-block buffer (used for all-blocks save)
             self.all_results.extend([dict(r) for r in self.results])
-
-            # Compute and save per-block DOMS summary
-            exclude_n = int(STAIRCASE_BURNIN) if bool(STAIRCASE_ON) else 0
-            if str(name).upper() in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
-                exclude_n = 0
-
             summary_last_n = CALIB_SUMMARY_LAST_N if str(name).upper() == "CALIBRATION" else None
-
             self.doms_stats = self.compute_doms_summary(
-                exclude_first_trials=exclude_n,
-                summary_last_n=summary_last_n
+                exclude_first_trials=self._summary_exclusion_trials(name),
+                summary_last_n=summary_last_n,
             )
-            
             self.save_doms_summary_csv(block_order=presented_order, block_name=name)
+            self._cache_calibration_doms_params(name)
 
-            # Cache CALIBRATION DOMS params for later blocks
-            if str(name).upper() == "CALIBRATION":
-                ds = dict(self.doms_stats or {})
-
-                def _ok(x):
-                    return isinstance(x, (int, float)) and (not math.isnan(x)) and math.isfinite(x)
-
-                if (ds.get("n_conflict", 0) >= 5 and ds.get("n_nonconflict", 0) >= 5
-                    and _ok(ds.get("mean_conflict")) and _ok(ds.get("sd_conflict"))
-                    and _ok(ds.get("mean_nonconflict")) and _ok(ds.get("sd_nonconflict"))):
-
-                    self.calib_doms_params = {
-                        "mu_low_start": float(ds["mean_conflict"]),
-                        "mu_high_start": float(ds["mean_nonconflict"]),
-                        "doms_sd_low": max(1e-6, float(ds["sd_conflict"])),
-                        "doms_sd_high": max(1e-6, float(ds["sd_nonconflict"])),
-                    }
-
-                    print("[CALIBRATION] Cached DOMS params for later blocks:", self.calib_doms_params)
-                else:
-                    self.calib_doms_params = None
-                    print("[CALIBRATION] DOMS stats insufficient; not caching for later blocks.")
-
-            # Optional immediate block feedback (per-block switch)
-            disp = get_block_display_title(name)
             show_fb = bool(block.get("SHOW_BLOCK_FEEDBACK", False))
             did_show_fb = False
             if show_fb and self.results:
                 show_block_feedback(self.screen, self.clock, self.font, self.results, block_name=name)
                 did_show_fb = True
-                
-            # Post-block slider questions
-            if ENABLE_POSTBLOCK_SLIDERS:
-                s_res = run_postblock_slider_questions(
-                    self.screen,
-                    self.clock,
-                    self.font,
-                    block_name=name,
-                    title_font=self.title_font
-                )
-                if isinstance(s_res, dict) and s_res.get("quit"):
-                    pygame.quit()
-                    return
 
-                self.postblock_slider_responses = s_res if isinstance(s_res, list) else []
-
-                self.save_postblock_slider_results(
-                    block_order=presented_order,
-                    block_name=name,
-                    block_idx=presented_order
-                )
-
-                pid = "" if self.participant_id is None else int(self.participant_id)
-                for r in self.postblock_slider_responses:
-                    rr = dict(r)
-                    rr["participant_id"] = pid
-                    rr["block"] = str(name)
-                    rr["block_idx"] = int(presented_order)
-                    self.all_postblock_slider_responses.append(rr)
-        
-            # Post-block questionnaire (only if enabled by this block's settings)
-            if ENABLE_POSTBLOCK_QUESTIONS:
-                intro = run_questionnaire_intro_screen(
-                    self.screen, self.clock, self.font, self.title_font
-                )
-                if isinstance(intro, dict) and intro.get("quit"):
-                    pygame.quit()
-                    return
-
-                q_res = run_postblock_questionnaire(
-                    self.screen, self.clock, self.font, base_name=name, label_font=self.label_font
-                )
-                if isinstance(q_res, dict) and q_res.get("quit"):
-                    pygame.quit()
-                    return
-
-                self.postblock_responses = q_res if isinstance(q_res, list) else []
-
-                # save per-block postblock
-                self.save_postblock_results(
-                    block_order=presented_order,
-                    block_name=name,
-                    block_idx=presented_order
-                )
-
-                # append into across-block buffer (with required columns)
-                pid = "" if self.participant_id is None else int(self.participant_id)
-                for r in self.postblock_responses:
-                    rr = dict(r)
-                    rr["participant_id"] = pid
-                    rr["block"] = str(name)
-                    rr["block_idx"] = int(presented_order)
-                    self.all_postblock_responses.append(rr)
-
-            # ---- End-of-block vs experiment-complete screen ----
-            if is_last_block:
-                # SAVE COMBINED FILES BEFORE FINAL ESC-TO-EXIT SCREEN
-                if len(blocks_to_run) > 1:
-                    self.save_combined_results_csv(suffix="b00_ALL")
-
-                self.save_postblock_all_results()
-                self.save_postblock_slider_all_results()
-
-                final_score_pct = self.compute_final_performance_score()
-                done = run_experiment_complete_screen(
-                    self.screen,
-                    self.clock,
-                    self.font,
-                    performance_score_pct=final_score_pct
-                )
+            if self._run_postblock_slider_flow(block_name=name, block_order=presented_order):
                 pygame.quit()
                 return
-            else:
-                # If we already showed the accuracy feedback screen, don't show the generic block-complete screen.
-                if did_show_fb:
-                    continue
+            if self._run_postblock_questionnaire_flow(block_name=name, block_order=presented_order):
+                pygame.quit()
+                return
 
-                if str(name).upper() not in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
-                    done = run_endblock_screen(self.screen, self.clock, self.font, name)
-                    if isinstance(done, dict) and done.get("quit"):
-                        pygame.quit()
-                        return
+            if is_last_block:
+                self._finalize_experiment(ran_multiple_blocks=len(blocks_to_run) > 1)
+                return
+
+            if did_show_fb:
+                continue
+
+            if str(name).upper() not in ("MANUAL", "AUTOMATION1", "AUTOMATION2"):
+                done = run_endblock_screen(self.screen, self.clock, self.font, name)
+                if isinstance(done, dict) and done.get("quit"):
+                    pygame.quit()
+                    return
 
 
 # ------------------------------ Main / CLI -------------------------------

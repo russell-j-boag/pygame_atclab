@@ -205,7 +205,7 @@ def select_extremes(cases: List[Case]) -> Dict[str, Case]:
 
 # ----------------------------- Plotting ----------------------------------
 
-def draw_radar(ax, W: int, H: int, margin_px: float = 0.0):
+def draw_radar(ax, W: int, H: int):
     cx, cy = 0.5 * W, 0.5 * H
 
     # background
@@ -497,7 +497,7 @@ def main():
     ax = fig.add_subplot(111)
     ax.set_facecolor(BG_COLOR)
 
-    draw_radar(ax, W, H, margin_px=args.margin_px)
+    draw_radar(ax, W, H)
 
     stats = sample_and_plot_pairs(
         ax,
