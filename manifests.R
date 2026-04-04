@@ -621,7 +621,7 @@ p_acc_block <- ggplot() +
   scale_linetype_manual(
     values = c(
       "Observed accuracy" = "solid",
-      "Self-rated own accuracy" = "solid",
+      "Self-rated own accuracy" = "dotted",
       "Self-rated aid accuracy" = "dotted"
     ),
     name = NULL
@@ -662,19 +662,34 @@ block_plot <- p_acc_block / p_rt_block
 block_plot
 
 ggsave(
-  filename = "plots/block_plot.pdf",
-  plot = block_plot,
+  filename = "plots/block_acc_plot.pdf",
+  plot = p_acc_block,
   width = 6,
-  height = 6
+  height = 4.5
 )
 
 ggsave(
-  filename = "plots/block_plot.png",
-  plot = block_plot,
+  filename = "plots/block_acc_plot.png",
+  plot = p_acc_block,
   width = 6,
-  height = 6,
+  height = 4.5,
   dpi = 300
 )
+
+# ggsave(
+#   filename = "plots/block_plot.pdf",
+#   plot = block_plot,
+#   width = 6,
+#   height = 6
+# )
+# 
+# ggsave(
+#   filename = "plots/block_plot.png",
+#   plot = block_plot,
+#   width = 6,
+#   height = 6,
+#   dpi = 300
+# )
 
 # ------------------
 # Accuracy and mean RT by stimulus and block
