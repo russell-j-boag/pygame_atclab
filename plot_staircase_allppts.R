@@ -63,7 +63,7 @@ for (pid in participant_ids) {
   if (nrow(dat_calib) == 0) next
   
   dat_calib_last_n <- dat_calib %>%
-    slice_tail(n = min(CALIB_SUMMARY_LAST_N, n()))
+    slice_tail(n = CALIB_SUMMARY_LAST_N)
   
   acc_global_last_n <- mean(dat_calib_last_n$correct_num, na.rm = TRUE)
   mean_doms_last_n  <- mean(abs(dat_calib_last_n$DOMS - DOMS_THRESHOLD_NM), na.rm = TRUE)
