@@ -35,6 +35,7 @@ latest_per_participant <- file_tbl %>%
 
 # Show which files were selected
 print(latest_per_participant %>% select(participant_id, path, mtime))
+nrow(latest_per_participant)
 
 # Read and bind all selected files
 dat <- latest_per_participant %>%
@@ -46,6 +47,7 @@ dat <- latest_per_participant %>%
 head(dat)
 tail(dat)
 str(dat)
+length(unique(dat$participant_id))
 
 # Save master CSV
 write_csv(dat, "data/data_atc_all.csv")
