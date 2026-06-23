@@ -14,6 +14,7 @@ __pycache__/
 output/*
 plots/*
 data/*
+atclab_stimulus_screenshots/
 
 !output/.gitkeep
 !plots/.gitkeep

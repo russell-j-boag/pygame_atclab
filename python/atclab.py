@@ -2018,6 +2018,270 @@ def draw_blank_radar(screen, trial: TrialSpec, cx: float, cy: float, border_colo
         )
         
 
+def draw_trial_frame_state(
+    screen,
+    font,
+    info_font,
+    trial: TrialSpec,
+    *,
+    trial_idx: int = 0,
+    total_trials: int = 1,
+    elapsed: float = 0.5,
+    aid_label_font=None,
+    aid_font=None,
+    drt_flash_on: bool = False,
+    show_automation: bool = True,
+    show_masked_banner: bool = False,
+) -> Dict[str, Any]:
+    """
+    Draw one static trial frame without running event loops or writing outputs.
+
+    This mirrors the live stimulus drawing path in run_trial() closely enough for
+    screenshot capture while keeping the experiment runtime behavior untouched.
+    """
+    if aid_label_font is None:
+        aid_label_font = info_font
+    if aid_font is None:
+        aid_font = font
+
+    elapsed = max(0.0, float(elapsed))
+
+    x1 = float(trial.pos1_start_x) + float(trial.vel1_x) * elapsed
+    y1 = float(trial.pos1_start_y) + float(trial.vel1_y) * elapsed
+    x2 = float(trial.pos2_start_x) + float(trial.vel2_x) * elapsed
+    y2 = float(trial.pos2_start_y) + float(trial.vel2_y) * elapsed
+
+    fl1 = int(trial.ac1_fl)
+    fl2 = int(trial.ac2_fl)
+    speed_label1 = f"{fl1}>{fl1} {trial.ac1_speed:.0f}"
+    speed_label2 = f"{fl2}>{fl2} {trial.ac2_speed:.0f}"
+
+    context_id = trial.context_id
+    if context_id == 1:
+        border_color = (255, 0, 0)
+    elif context_id == 2:
+        border_color = (0, 0, 255)
+    else:
+        border_color = None
+
+    cx = SCREEN_WIDTH / 2
+    cy = SCREEN_HEIGHT / 2
+
+    screen.fill(BG_COLOR)
+
+    big_radius = SCREEN_HEIGHT // 2
+    pygame.draw.circle(
+        screen,
+        BG_CIRCLE_COLOR,
+        (int(cx), int(cy)),
+        big_radius,
+        0,
+    )
+
+    pygame.draw.line(
+        screen,
+        ROUTE_COLOR,
+        (int(trial.route1_start_x), int(trial.route1_start_y)),
+        (int(trial.route1_end_x), int(trial.route1_end_y)),
+        max(1, ui(1)),
+    )
+    pygame.draw.line(
+        screen,
+        ROUTE_COLOR,
+        (int(trial.route2_start_x), int(trial.route2_start_y)),
+        (int(trial.route2_end_x), int(trial.route2_end_y)),
+        max(1, ui(1)),
+    )
+
+    if border_color is not None:
+        pygame.draw.rect(
+            screen,
+            border_color,
+            screen.get_rect(),
+            max(1, ui(8)),
+        )
+
+    if drt_flash_on:
+        pygame.draw.circle(
+            screen,
+            FLASH_COLOR,
+            (int(cx), int(cy)),
+            big_radius,
+            max(1, ui(12)),
+        )
+
+    guide_x = int(GUIDE_MARGIN + trial.guide_min_sep)
+    guide_y = SCREEN_HEIGHT // 2
+    draw_guide_cross(screen, guide_x, guide_y, trial.guide_min_sep)
+
+    if SHOW_DOMS_OVERLAY:
+        draw_doms_marker_and_label(
+            screen,
+            info_font,
+            trial=trial,
+            guide_x=guide_x,
+            guide_y=guide_y,
+            guide_min_sep=trial.guide_min_sep,
+            doms_px=trial.min_sep,
+            doms_nm=trial.doms_nm,
+            color=TEXT_COLOR,
+            line_color=(255, 255, 255),
+        )
+
+    pygame.draw.circle(
+        screen,
+        AC1_CIRCLE_COLOR,
+        (int(x1), int(y1)),
+        CIRCLE_RADIUS,
+        max(1, ui(1)),
+    )
+    pygame.draw.circle(
+        screen,
+        AC2_CIRCLE_COLOR,
+        (int(x2), int(y2)),
+        CIRCLE_RADIUS,
+        max(1, ui(1)),
+    )
+
+    future_dt = 60.0
+    f1_x = x1 + float(trial.vel1_x) * future_dt
+    f1_y = y1 + float(trial.vel1_y) * future_dt
+    f2_x = x2 + float(trial.vel2_x) * future_dt
+    f2_y = y2 + float(trial.vel2_y) * future_dt
+
+    pygame.draw.line(
+        screen,
+        AC1_CIRCLE_COLOR,
+        (int(x1), int(y1)),
+        (int(f1_x), int(f1_y)),
+        max(1, ui(1)),
+    )
+    pygame.draw.line(
+        screen,
+        AC2_CIRCLE_COLOR,
+        (int(x2), int(y2)),
+        (int(f2_x), int(f2_y)),
+        max(1, ui(1)),
+    )
+
+    tip_radius = max(1, ui(2))
+    pygame.draw.circle(screen, (255, 255, 255), (int(f1_x), int(f1_y)), tip_radius, 0)
+    pygame.draw.circle(screen, (255, 255, 255), (int(f2_x), int(f2_y)), tip_radius, 0)
+
+    box_offset = ui(80)
+    diag = box_offset / math.sqrt(2.0)
+
+    box1_tl = (x1 + diag, y1 - diag)
+    box2_tl = (x2 + diag, y2 - diag)
+
+    auto_label1 = None
+    auto_label2 = None
+    auto_delay = trial.auto_delay if trial.auto_delay is not None else 0.0
+    show_visible_aid = (
+        bool(show_automation)
+        and (trial.automation is not None)
+        and elapsed >= max(0.0, float(auto_delay))
+    )
+    if show_visible_aid and AUTOMATION_IN_INFOBOX:
+        auto_label1 = str(trial.automation)
+        auto_label2 = str(trial.automation)
+
+    box1_rect = draw_info_box(
+        screen,
+        info_font,
+        trial.callsign1,
+        speed_label1,
+        box1_tl,
+        auto_text=auto_label1,
+        fg=INFOBOX_COLOR,
+    )
+    box2_rect = draw_info_box(
+        screen,
+        info_font,
+        trial.callsign2,
+        speed_label2,
+        box2_tl,
+        auto_text=auto_label2,
+        fg=INFOBOX_COLOR,
+    )
+
+    def draw_middle_connector(color, circle_pos, box_rect):
+        x0, y0 = circle_pos
+        x1c, y1c = box_rect.topleft
+
+        vx = x1c - x0
+        vy = y1c - y0
+        dist = math.hypot(vx, vy)
+        if dist <= 1e-6:
+            return
+
+        ux = vx / dist
+        uy = vy / dist
+        start_pad = ui(16)
+        end_pad = ui(16)
+
+        start_x = x0 + ux * start_pad
+        start_y = y0 + uy * start_pad
+        end_x = x1c - ux * end_pad
+        end_y = y1c - uy * end_pad
+
+        pygame.draw.line(
+            screen,
+            color,
+            (int(start_x), int(start_y)),
+            (int(end_x), int(end_y)),
+            max(1, ui(1)),
+        )
+
+    draw_middle_connector(AC1_CIRCLE_COLOR, (x1, y1), box1_rect)
+    draw_middle_connector(AC2_CIRCLE_COLOR, (x2, y2), box2_rect)
+
+    aid_bottom = None
+    if show_visible_aid:
+        aid_bottom = draw_aid_banner_top_center(
+            screen,
+            small_font=aid_label_font,
+            big_font=aid_font,
+            label=str(trial.automation),
+            y=ui(20),
+        )
+    elif show_masked_banner:
+        aid_bottom = draw_aid_banner_top_center(
+            screen,
+            small_font=aid_label_font,
+            big_font=aid_font,
+            label=str(MASKED_AID_BANNER_TEXT),
+            y=ui(MASKED_AID_BANNER_Y),
+        )
+
+    corner_pad = ui(16)
+    header_text = f"Trial {trial_idx + 1}/{total_trials}"
+    header_surf = font.render(header_text, True, TEXT_COLOR)
+    header_rect = header_surf.get_rect()
+    header_rect.topright = (SCREEN_WIDTH - corner_pad, corner_pad)
+    screen.blit(header_surf, header_rect)
+
+    timer_text = f"{max(0.0, trial.deadline - elapsed):4.1f}s"
+    timer_surf = font.render(timer_text, True, TEXT_COLOR)
+    timer_rect = timer_surf.get_rect()
+    timer_rect.topleft = (corner_pad, corner_pad)
+    screen.blit(timer_surf, timer_rect)
+
+    return {
+        "aircraft1": (int(x1), int(y1)),
+        "aircraft2": (int(x2), int(y2)),
+        "probe1": (int(f1_x), int(f1_y)),
+        "probe2": (int(f2_x), int(f2_y)),
+        "box1_rect": box1_rect,
+        "box2_rect": box2_rect,
+        "timer_rect": timer_rect,
+        "header_rect": header_rect,
+        "aid_bottom": aid_bottom,
+        "guide_x": guide_x,
+        "guide_y": guide_y,
+    }
+
+
 def draw_instruction_line(screen, font, line, y, default_color=TEXT_COLOR):
     """
     Draw a single instruction line centred horizontally.
@@ -4634,11 +4898,17 @@ class ATCLabApp:
     def run_trials(self, n_trials: int, block_name: str, block_idx: int):
         total_trials = n_trials
         params = self._resolve_trial_generation_params(block_name)
+        sd_low_label = (
+            "NA" if params["doms_sd_low"] is None else f"{params['doms_sd_low']:.3f}"
+        )
+        sd_high_label = (
+            "NA" if params["doms_sd_high"] is None else f"{params['doms_sd_high']:.3f}"
+        )
 
         print(
             f"[{block_name}] DOMS params: "
-            f"mu_low={params['mu_low_start']:.3f}, sd_low={('NA' if params['doms_sd_low'] is None else f'{params['doms_sd_low']:.3f}')}; "
-            f"mu_high={params['mu_high_start']:.3f}, sd_high={('NA' if params['doms_sd_high'] is None else f'{params['doms_sd_high']:.3f}')}"
+            f"mu_low={params['mu_low_start']:.3f}, sd_low={sd_low_label}; "
+            f"mu_high={params['mu_high_start']:.3f}, sd_high={sd_high_label}"
         )
 
         for i in range(total_trials):
