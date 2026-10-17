@@ -16,6 +16,9 @@ plots/*
 data/*
 atclab_stimulus_screenshots/
 
+# Optional extraction of the canonical historical source ZIP
+source_archives/semester1_2026/extracted/
+
 !output/.gitkeep
 !plots/.gitkeep
 !data/.gitkeep

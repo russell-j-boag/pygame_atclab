@@ -1,20 +1,29 @@
 # Clear workspace
 rm(list = ls())
 
+# Optional positional directories allow tests without touching study outputs.
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 2L) stop("Usage: Rscript collate_data.R [input_dir] [output_dir]")
+input_dir <- if (length(args) >= 1L) args[[1L]] else "output"
+output_dir <- if (length(args) >= 2L) args[[2L]] else "data"
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+timing_audit_columns <- c(
+  "rt_timing_version", "rt_backend_version", "stimulus_onset_s",
+  "response_timestamp_s", "n_ignored_pre_onset_keydowns", "response_readout_delay_s"
+)
+
 # Load libraries
 library("dplyr")
 library("readr")
 library("stringr")
-library("tidyverse")
-library("zoo")
-library("patchwork")
+library("purrr")
 
 
 # 1) First collate all choice-RT results files ----------------------------
 
 # Find all complete results files
 files <- list.files(
-  "output",
+  input_dir,
   pattern = "^results_.*_b00_ALL\\.csv$",
   full.names = TRUE
 )
@@ -50,7 +59,7 @@ str(dat)
 length(unique(dat$participant_id))
 
 # Save master CSV
-write_csv(dat, "data/data_atc_all.csv")
+write_csv(dat, file.path(output_dir, "data_atc_all.csv"))
 
 # To make the data more manageable, take a subset of relevant columns 
 dat <- latest_per_participant %>%
@@ -70,7 +79,8 @@ dat <- latest_per_participant %>%
     response,
     rt_s,
     correct,
-    feedback
+    feedback,
+    any_of(timing_audit_columns)
   )
 
 dat <- data.frame(dat)
@@ -82,14 +92,14 @@ str(dat)
 # View(dat)
 
 # Save master CSV
-write_csv(dat, "data/data_atc.csv")
+write_csv(dat, file.path(output_dir, "data_atc.csv"))
 
 
 # 2) Collate post-block questionnaire files -------------------------------
 
 # Find all complete post-block results files
 files <- list.files(
-  "output",
+  input_dir,
   pattern = "^results_.*_b00_POSTBLOCK_ALL\\.csv$",
   full.names = TRUE
 )
@@ -124,14 +134,14 @@ str(dat)
 # View(dat)
 
 # Save master CSV
-write_csv(dat, "data/data_atc_postblock_all.csv")
+write_csv(dat, file.path(output_dir, "data_atc_postblock_all.csv"))
 
 
 # 3) Collate post-block accuracy slider files -----------------------------
 
 # Find all complete post-block results files
 files <- list.files(
-  "output",
+  input_dir,
   pattern = "^results_.*_b00_POSTBLOCK_SLIDERS_ALL\\.csv$",
   full.names = TRUE
 )
@@ -166,4 +176,4 @@ str(dat)
 # View(dat)
 
 # Save master CSV
-write_csv(dat, "data/data_atc_sliders_all.csv")
+write_csv(dat, file.path(output_dir, "data_atc_sliders_all.csv"))

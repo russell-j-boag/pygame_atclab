@@ -1,0 +1,2069 @@
+{
+  "schema_version": 1,
+  "label": "Semester 1 2026 source archive",
+  "designation": "User designated this ATCLAB source archive for Semester 1 2026.",
+  "archived_on": "2026-10-17",
+  "archive_kind": "existing_zip_preserved_byte_for_byte",
+  "original_zip_path": "/Users/rjb779/Documents/pygame_atclab.zip",
+  "original_zip_retained": true,
+  "original_distributed_zip_provenance_verified": false,
+  "archive_zip": "pygame_atclab_task_source_semester1_2026.zip",
+  "archive_size_bytes": 1309258,
+  "archive_sha256": "54e4cbef96d1f426993058a6f2f30ed09ea65bf29b18ab7c204f8b2bf2478c65",
+  "original_zip_sha256": "54e4cbef96d1f426993058a6f2f30ed09ea65bf29b18ab7c204f8b2bf2478c65",
+  "archive_entry_count": 221,
+  "archive_file_count": 138,
+  "embedded_git_head_ref": "ref: refs/heads/main",
+  "embedded_git_commit": "1de22e4f4d7c04810eb14639b371433b2a2df705",
+  "embedded_git_commit_timestamp": "2026-03-23T13:36:58+11:00",
+  "matches_source_at_commit": "1de22e4f4d7c04810eb14639b371433b2a2df705",
+  "tracked_source_member_count": 15,
+  "pre_fix_checkout_commit": "758904db0c1c688c8b0880340bcf9d45091862ca",
+  "provenance_note": "This existing ZIP was copied without recompression. Its 15 tracked source members match the embedded March 23 Git revision exactly. Its task and instructions differ from the later pre-fix checkout; the original ZIP has not been replaced with that later source. This does not independently establish deployment on every Semester 1 collection computer.",
+  "archive_contents_note": "Original Git metadata, RStudio state, R history, Python cache files and macOS metadata remain inside the ZIP unchanged. The archived output/ and plots/ folders contain only metadata/placeholders; no participant CSV exports are present.",
+  "timing_convention": "Historical Pygame frame-polled RT: origin before the first aircraft frame and key responses assigned the drawing loop elapsed time; no rt_timing_version field.",
+  "timing_fix_status": "Present in the current working tree and uncommitted at archive creation.",
+  "future_bundle_timing_version": "ptb_queue_flip_v1",
+  "future_bundle_source": "Current repository working source, with response_timing.py, check_response_timing.py, updated task/setup, normal runtime files and current README guidance; distinct release filename and source manifest.",
+  "preservation": "Do not rebuild, clean, or update this canonical ZIP. Preserve any extracted historical copy unchanged.",
+  "local_extracted_copy": "extracted/",
+  "local_extracted_copy_note": "Optional; not created. Ignored by Git. Temporary tracked-source extraction used for checks was removed.",
+  "validation": {
+    "zip_crc": "passed",
+    "byte_identical_to_original": true,
+    "all_15_tracked_source_members_match_embedded_commit": true,
+    "archived_python_compile": "passed for all three Python modules",
+    "archived_task_help": "passed using r-pygame; no task run or study writes",
+    "archived_r_parse": "passed for all six archived R scripts",
+    "deployment_on_collection_computers_verified": false,
+    "current_timing_implementation_unchanged": true,
+    "historical_data_files_unchanged": 908,
+    "original_zip_retained_unchanged": true
+  },
+  "tracked_source_members": [
+    {
+      "path": ".gitignore",
+      "size_bytes": 148,
+      "sha256": "a28dc93ed36dd432d44295c7aa91fcc4896c05e0b6fb056c84027e242b1eeb76",
+      "git_blob_id": "97ef1731e404bf6bda0fc432b63db5ad9ba064a9"
+    },
+    {
+      "path": "0-helpers.R",
+      "size_bytes": 3809,
+      "sha256": "7a9594e23e16c80f8d07eb676eec34743cf901b1061f9482e4d839a8a7872f67",
+      "git_blob_id": "6e2e8ba921850a135e35972ed454d89751dd0d4e"
+    },
+    {
+      "path": "0-setup_pygame.R",
+      "size_bytes": 1050,
+      "sha256": "8d583473b50f86ba678e4c6636b88788bd5c59f298ab076d7a4dab9ec654723e",
+      "git_blob_id": "8b39c2f94c4db99da3e216b9c07a5ef519a20181"
+    },
+    {
+      "path": "1-run_atclab.R",
+      "size_bytes": 368,
+      "sha256": "0a1a0abbabb9af4ac4571fe5018057e1d3276c0a3503b678939f2c05aa007c4a",
+      "git_blob_id": "c489e8f5233763933479b15efb821599c212b47f"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 467,
+      "sha256": "d7f0779d754d512eeb1faa24c4f74a12834848ffb484be92e467825e2f3bdc1f",
+      "git_blob_id": "d076c02ec86bd466cd369fa353b6474667b5f832"
+    },
+    {
+      "path": "check_calibration_stationarity.R",
+      "size_bytes": 3113,
+      "sha256": "1beded03ce544b7c3a3ad31ceaa18c0c6866929d365d86ff4e927e642cd7cbbb",
+      "git_blob_id": "fa4c0750b08a82c11c62fc5ec9fe2025896425d4"
+    },
+    {
+      "path": "output/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_id": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "plot_aircraft_geometry.R",
+      "size_bytes": 3169,
+      "sha256": "cd7f0d91f9cab4b59beee3162bd6555500995c616f0cf005e4d416b4ee5b02a5",
+      "git_blob_id": "17f532904382ab0f08b4b6c9ae20bc74f1387e92"
+    },
+    {
+      "path": "plot_staircase.R",
+      "size_bytes": 19084,
+      "sha256": "697d4edf6e3aaca2fa24d541795d5d84afafcda4a8423e4007deaf677285574e",
+      "git_blob_id": "6074b285544b3a27a419fbb082a7afa1709452d0"
+    },
+    {
+      "path": "plots/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_id": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "pygame_atclab.Rproj",
+      "size_bytes": 205,
+      "sha256": "3a81ccc25a62f1a31c7d3404389935ced50831abea5e848408745ad1a1bf6126",
+      "git_blob_id": "8e3c2ebc99e2e337f7d69948b93529a437590b27"
+    },
+    {
+      "path": "python/atclab.py",
+      "size_bytes": 168265,
+      "sha256": "345b13e190a664f40ee772e29fa2f3bd4661f9a0882162c8715405d712d8e9f2",
+      "git_blob_id": "4b57ae391dd3de555b40362c9a14e062b65de274"
+    },
+    {
+      "path": "python/fonts/Roboto-Light.ttf",
+      "size_bytes": 162636,
+      "sha256": "94df4e4976db8ddaec27f8e8c33eef912e744fb200ca09051794b38e5a502fc0",
+      "git_blob_id": "d43e943312e0f2c653815dd791d93f94f0abd73f"
+    },
+    {
+      "path": "python/instructions.py",
+      "size_bytes": 58155,
+      "sha256": "95963d93417e220939ff5acdea77495f2cedcfed10cae7c0ab8b33d0ada68ed1",
+      "git_blob_id": "1687064303a33511be1f53276a8db295c5bdfe3d"
+    },
+    {
+      "path": "python/plot_aircraft_geometry.py",
+      "size_bytes": 17060,
+      "sha256": "97619e76f13d7e94a92169c9be031542cdd3cf168cca38c8671d6ed5c8b7ff85",
+      "git_blob_id": "0dd90feb68def6190309d36c6442704c898ad4d4"
+    }
+  ],
+  "members": [
+    {
+      "path": "pygame_atclab/.Rhistory",
+      "size_bytes": 10919,
+      "sha256": "f50dac15df567e51574636957be17e761eec7a39fd3aed0e3d89604ffce85872",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        16,
+        11,
+        26
+      ],
+      "crc32": "d3283e4e"
+    },
+    {
+      "path": "pygame_atclab/.DS_Store",
+      "size_bytes": 10244,
+      "sha256": "7a3310e2940eb58ea22d92509617aad13527549088a5892f55042e84017de6f1",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        0
+      ],
+      "crc32": "190a6562"
+    },
+    {
+      "path": "__MACOSX/pygame_atclab/._.DS_Store",
+      "size_bytes": 120,
+      "sha256": "2f380f4a3d05a8d90c2106f50da75064e9ce57a598599dc5404f8f69a0223aa9",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        0
+      ],
+      "crc32": "38c0880b"
+    },
+    {
+      "path": "pygame_atclab/1-run_atclab.R",
+      "size_bytes": 368,
+      "sha256": "0a1a0abbabb9af4ac4571fe5018057e1d3276c0a3503b678939f2c05aa007c4a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        20,
+        21,
+        44,
+        14
+      ],
+      "crc32": "d381fd4d"
+    },
+    {
+      "path": "pygame_atclab/plot_staircase.R",
+      "size_bytes": 19084,
+      "sha256": "697d4edf6e3aaca2fa24d541795d5d84afafcda4a8423e4007deaf677285574e",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        0
+      ],
+      "crc32": "788d5d58"
+    },
+    {
+      "path": "__MACOSX/pygame_atclab/._plot_staircase.R",
+      "size_bytes": 276,
+      "sha256": "0b4b99a7a539688157cb1f7afcedc0f3f1de68c951e14d14dd9f09b680b22296",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        0
+      ],
+      "crc32": "4686ff2d"
+    },
+    {
+      "path": "pygame_atclab/0-setup_pygame.R",
+      "size_bytes": 1050,
+      "sha256": "8d583473b50f86ba678e4c6636b88788bd5c59f298ab076d7a4dab9ec654723e",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        3,
+        10,
+        14,
+        42
+      ],
+      "crc32": "a8a929be"
+    },
+    {
+      "path": "pygame_atclab/check_calibration_stationarity.R",
+      "size_bytes": 3113,
+      "sha256": "1beded03ce544b7c3a3ad31ceaa18c0c6866929d365d86ff4e927e642cd7cbbb",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        20,
+        21,
+        13,
+        4
+      ],
+      "crc32": "400ccc6b"
+    },
+    {
+      "path": "pygame_atclab/pygame_atclab.Rproj",
+      "size_bytes": 205,
+      "sha256": "3a81ccc25a62f1a31c7d3404389935ced50831abea5e848408745ad1a1bf6126",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        9,
+        10
+      ],
+      "crc32": "92811039"
+    },
+    {
+      "path": "pygame_atclab/plot_aircraft_geometry.R",
+      "size_bytes": 3169,
+      "sha256": "cd7f0d91f9cab4b59beee3162bd6555500995c616f0cf005e4d416b4ee5b02a5",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        16,
+        9,
+        33,
+        38
+      ],
+      "crc32": "af3b85df"
+    },
+    {
+      "path": "pygame_atclab/README.md",
+      "size_bytes": 467,
+      "sha256": "d7f0779d754d512eeb1faa24c4f74a12834848ffb484be92e467825e2f3bdc1f",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        49,
+        12
+      ],
+      "crc32": "709b4441"
+    },
+    {
+      "path": "pygame_atclab/.gitignore",
+      "size_bytes": 148,
+      "sha256": "a28dc93ed36dd432d44295c7aa91fcc4896c05e0b6fb056c84027e242b1eeb76",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        11,
+        38,
+        24
+      ],
+      "crc32": "93633362"
+    },
+    {
+      "path": "pygame_atclab/0-helpers.R",
+      "size_bytes": 3809,
+      "sha256": "7a9594e23e16c80f8d07eb676eec34743cf901b1061f9482e4d839a8a7872f67",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        10,
+        13,
+        1,
+        32
+      ],
+      "crc32": "b8fbe882"
+    },
+    {
+      "path": "pygame_atclab/python/.DS_Store",
+      "size_bytes": 6148,
+      "sha256": "05f58dbe8783fd63f8e9c2df19f11197191f902485f13d8e0eae97f126375c12",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        18
+      ],
+      "crc32": "5924067c"
+    },
+    {
+      "path": "__MACOSX/pygame_atclab/python/._.DS_Store",
+      "size_bytes": 120,
+      "sha256": "2f380f4a3d05a8d90c2106f50da75064e9ce57a598599dc5404f8f69a0223aa9",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        18
+      ],
+      "crc32": "38c0880b"
+    },
+    {
+      "path": "pygame_atclab/python/plot_aircraft_geometry.py",
+      "size_bytes": 17060,
+      "sha256": "97619e76f13d7e94a92169c9be031542cdd3cf168cca38c8671d6ed5c8b7ff85",
+      "zip_member_timestamp": [
+        2026,
+        2,
+        15,
+        11,
+        55,
+        24
+      ],
+      "crc32": "528cb090"
+    },
+    {
+      "path": "pygame_atclab/python/instructions.py",
+      "size_bytes": 58155,
+      "sha256": "95963d93417e220939ff5acdea77495f2cedcfed10cae7c0ab8b33d0ada68ed1",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        14,
+        10,
+        34,
+        44
+      ],
+      "crc32": "e5db9f8e"
+    },
+    {
+      "path": "pygame_atclab/python/atclab.py",
+      "size_bytes": 168265,
+      "sha256": "345b13e190a664f40ee772e29fa2f3bd4661f9a0882162c8715405d712d8e9f2",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        11,
+        54
+      ],
+      "crc32": "34873a9e"
+    },
+    {
+      "path": "pygame_atclab/output/.DS_Store",
+      "size_bytes": 6148,
+      "sha256": "d65165279105ca6773180500688df4bdc69a2c7b771752f0a46ef120b7fd8ec3",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        24,
+        56
+      ],
+      "crc32": "6d88006a"
+    },
+    {
+      "path": "__MACOSX/pygame_atclab/output/._.DS_Store",
+      "size_bytes": 120,
+      "sha256": "2f380f4a3d05a8d90c2106f50da75064e9ce57a598599dc5404f8f69a0223aa9",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        24,
+        56
+      ],
+      "crc32": "38c0880b"
+    },
+    {
+      "path": "pygame_atclab/output/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        13,
+        8
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.git/config",
+      "size_bytes": 317,
+      "sha256": "f8c02446d97440ceb13c7ea10b5e2aff8588fcd3f3bc89c5d140c8e2bb4d2d8d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        47,
+        26
+      ],
+      "crc32": "fff474a9"
+    },
+    {
+      "path": "pygame_atclab/.git/HEAD",
+      "size_bytes": 21,
+      "sha256": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        47,
+        22
+      ],
+      "crc32": "576463b5"
+    },
+    {
+      "path": "pygame_atclab/.git/description",
+      "size_bytes": 73,
+      "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "1f078b37"
+    },
+    {
+      "path": "pygame_atclab/.git/index",
+      "size_bytes": 1452,
+      "sha256": "6713a06829a38a69312c4a6cc70203cc00dc748d76366f62734fc23a76715a17",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "eaf5fbef"
+    },
+    {
+      "path": "pygame_atclab/.git/COMMIT_EDITMSG",
+      "size_bytes": 24,
+      "sha256": "cb1d95fdd783095498e9077b79395c44c8c081418ac83a0107af225b3123cc96",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "e2f42faa"
+    },
+    {
+      "path": "pygame_atclab/plots/.DS_Store",
+      "size_bytes": 6148,
+      "sha256": "d65165279105ca6773180500688df4bdc69a2c7b771752f0a46ef120b7fd8ec3",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        0
+      ],
+      "crc32": "6d88006a"
+    },
+    {
+      "path": "__MACOSX/pygame_atclab/plots/._.DS_Store",
+      "size_bytes": 120,
+      "sha256": "2f380f4a3d05a8d90c2106f50da75064e9ce57a598599dc5404f8f69a0223aa9",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        14,
+        25,
+        0
+      ],
+      "crc32": "38c0880b"
+    },
+    {
+      "path": "pygame_atclab/plots/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        13,
+        8
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/python/__pycache__/atclab.cpython-311.pyc",
+      "size_bytes": 191454,
+      "sha256": "aea28b542049d2ad2bd8154ee59b6c6e8f9e625eb28944935725aff160763a6a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        59,
+        2
+      ],
+      "crc32": "8bdec033"
+    },
+    {
+      "path": "pygame_atclab/python/fonts/Roboto-Light.ttf",
+      "size_bytes": 162636,
+      "sha256": "94df4e4976db8ddaec27f8e8c33eef912e744fb200ca09051794b38e5a502fc0",
+      "zip_member_timestamp": [
+        2025,
+        11,
+        30,
+        21,
+        10,
+        10
+      ],
+      "crc32": "cc5eb97f"
+    },
+    {
+      "path": "pygame_atclab/.git/info/exclude",
+      "size_bytes": 240,
+      "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "21cd3d77"
+    },
+    {
+      "path": "pygame_atclab/.git/logs/HEAD",
+      "size_bytes": 1520,
+      "sha256": "73ea89c63880ea7d306812e0499e5693c2d94f883ae3c3cbcf64c80b5470b08d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "53b47218"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/commit-msg.sample",
+      "size_bytes": 896,
+      "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "10caf8e9"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-rebase.sample",
+      "size_bytes": 4898,
+      "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "5158ec84"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/sendemail-validate.sample",
+      "size_bytes": 2308,
+      "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "4b9edd4e"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-commit.sample",
+      "size_bytes": 1649,
+      "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "1b0e50ae"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/applypatch-msg.sample",
+      "size_bytes": 478,
+      "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "09f84f85"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/fsmonitor-watchman.sample",
+      "size_bytes": 4726,
+      "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "793c7cef"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-receive.sample",
+      "size_bytes": 544,
+      "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "96f8c492"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/prepare-commit-msg.sample",
+      "size_bytes": 1492,
+      "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "303613ed"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/post-update.sample",
+      "size_bytes": 189,
+      "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "c0f70c9a"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-merge-commit.sample",
+      "size_bytes": 416,
+      "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "5ef33f44"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-applypatch.sample",
+      "size_bytes": 424,
+      "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "024cc0cf"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/pre-push.sample",
+      "size_bytes": 1374,
+      "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "f90a0f0f"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/update.sample",
+      "size_bytes": 3650,
+      "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "06fcf0d9"
+    },
+    {
+      "path": "pygame_atclab/.git/hooks/push-to-checkout.sample",
+      "size_bytes": 2783,
+      "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        45,
+        50
+      ],
+      "crc32": "f00806d3"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/saved_source_markers",
+      "size_bytes": 27,
+      "sha256": "943cf5311c54c71f50cdf4d28d072c70ec8785a4b2b73bcc2000e6f1cf1dfc31",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        16,
+        11,
+        26
+      ],
+      "crc32": "057c0b9e"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/build_options",
+      "size_bytes": 199,
+      "sha256": "8272cb44a018303f132139f71d44cf7fa1a12f4575fc98fbcc08aca0547382fc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        44,
+        50
+      ],
+      "crc32": "bf3f60d6"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/rmd-outputs",
+      "size_bytes": 5,
+      "sha256": "7c370d9536d7d0d6a0f7cd7f9826692acd93e4fb05ba46f7b630b879740343d3",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        16,
+        11,
+        26
+      ],
+      "crc32": "f4828b9a"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/copilot_options",
+      "size_bytes": 49,
+      "sha256": "4a2f433eedb98d96e6594aeaf3168b0168a822d3b2eda6ad483588342de6d0ec",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        44,
+        50
+      ],
+      "crc32": "e7d49a2c"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/61/118331b694a004251d6119f060c344f71982a7",
+      "size_bytes": 45942,
+      "sha256": "619e840ca66869fa6c7a2368843f69ba117ba62091faff4e8b15785336affba6",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "15b30934"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/0d/d90feb68def6190309d36c6442704c898ad4d4",
+      "size_bytes": 5834,
+      "sha256": "30680678e63d06f5953a04365c601a99f86a7c9a55524dd9856f08f8bb300046",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "bbea99c2"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/04/a4ab14e7d38b2104953cbf230d3e0a844116a2",
+      "size_bytes": 368,
+      "sha256": "d03b519afb101f7670e13a854adec91688502064283c5228bb48ee9ecc09f2a4",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        48,
+        46
+      ],
+      "crc32": "1cbaf06d"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/67/70ccb69eb3be93239e4940394ebf3054dc6d8f",
+      "size_bytes": 163,
+      "sha256": "360b2540172f3053d460006e6d093781d46d88de002a4127bfe0f4ee7896f099",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        49,
+        16
+      ],
+      "crc32": "a5de775d"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/0e/824d7c7ac9e55a665c1cc091c5882c9baa45fb",
+      "size_bytes": 177,
+      "sha256": "94a2c06a24ed9d200fc7bf39e85b6970714f8659bba009f6e8c1170a19b8bdba",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        28,
+        26
+      ],
+      "crc32": "e27cc366"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/60/74b285544b3a27a419fbb082a7afa1709452d0",
+      "size_bytes": 3366,
+      "sha256": "1867bd96a54d7ceb45706b3fdb2b777a6371f9f20f2d8afe511a4df7a86ff701",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        46
+      ],
+      "crc32": "86af10b9"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/34/b68cbfdf877b029ee736c87e7f6f2cfa19b6c1",
+      "size_bytes": 48333,
+      "sha256": "4bcd22c8b359e0032eef6112c795b471b094bbc7457e8aa524305e9abbeb629e",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "18659b06"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/bb/6e8f40ff8b980af10275c3f11df5ae090c4e72",
+      "size_bytes": 429,
+      "sha256": "b2148ecc569f7953a7e21f0a5cf2b6a8375f110f3a459b37837df0b254b9c37f",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        32,
+        48
+      ],
+      "crc32": "c82a8fdf"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/d7/1852341e9d680f91bf9e1a23e720e8c7be8f01",
+      "size_bytes": 3376,
+      "sha256": "95c3553fdda335233cf46ecb8b485f319a733e9941cd72a50483336636e433e8",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "9368fbb4"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/d0/76c02ec86bd466cd369fa353b6474667b5f832",
+      "size_bytes": 302,
+      "sha256": "95e03c198660c4f39cbe688718198913ba78f3d29780bf2f2d5cb6dfc086ec97",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        49,
+        16
+      ],
+      "crc32": "d1240ea5"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/f3/8084c97223d129bf6a6016fba0ab460602deb2",
+      "size_bytes": 3364,
+      "sha256": "70be23dc291948f90cb8967890e65e8407c4e1a2a5ca1b7592d5d79e039ad529",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        32,
+        12
+      ],
+      "crc32": "fd36b748"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/c0/2dccade4cb21a4f11dc2358fb9f1bdb2682617",
+      "size_bytes": 170,
+      "sha256": "d6ddd33b373a07feeb313834ecf0f789235c10d21d260ca6604f82c1e1a926af",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        42
+      ],
+      "crc32": "59dcd111"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/fc/65c9e568a23bb767c68086ea539e432168237d",
+      "size_bytes": 20285,
+      "sha256": "3876ceb0347728657458b4623d17d92835bedd64d9a93cda5827cdd2b1a5e27f",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "b6874bde"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/ca/93f842fcc65ea58a6188e2463927af729e4309",
+      "size_bytes": 171,
+      "sha256": "7cdd0a424991a16c53bf6cf5f2aee614a4dbd67adce77c8b488cad9b99e1d205",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        42
+      ],
+      "crc32": "ed3b468e"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/4e/2087af4c4d5bd70341246eec3f4b3c0de52d49",
+      "size_bytes": 429,
+      "sha256": "6a44f2023a9029538b2c3cec2c241e6d3ccecaa1c936aa0b1375867b4f2170fe",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "3dbb5e6e"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/4b/57ae391dd3de555b40362c9a14e062b65de274",
+      "size_bytes": 47510,
+      "sha256": "7b6bfde2f215172fe77f279ee1a534b341cd2a02f5e65cd1da3dad9f3aa17d59",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "0462cc09"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/16/87064303a33511be1f53276a8db295c5bdfe3d",
+      "size_bytes": 14468,
+      "sha256": "475e2f69acf9f3701b033e921914330051d75d899b057330a2608be0d90619f7",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "5b51379e"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/73/8cb87b307c70059a65ccda912e1b273db7b498",
+      "size_bytes": 451,
+      "sha256": "af53d88a5af1472f3d0627f09bbe05434eedd26011d037a1a5e3f07f9e0e52de",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        42
+      ],
+      "crc32": "0390f2de"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/73/1a6e971f3558a3e7ba58d3b8f64b3bd4644956",
+      "size_bytes": 61,
+      "sha256": "31f22e095791c4229af91296a619e689c3773e4974b81c2f410e5fe89c343319",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "10882257"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/17/f532904382ab0f08b4b6c9ae20bc74f1387e92",
+      "size_bytes": 1267,
+      "sha256": "d77f3c97bf212579ed363f75b98c236b3d3c890e290aa280975a6b0baf9ccef6",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "d6370900"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/4d/f14a48b4b37a96909ca303f7fc063b6606dc0f",
+      "size_bytes": 369,
+      "sha256": "bdfc820b3f072da4ab3607bf7e9bcb265ab7cc0f54984c8b8b6c52440d3cb2ee",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        49,
+        16
+      ],
+      "crc32": "99a5a379"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/44/d2cef24e44792a5437ec6eaa6ca13f5c1fa15b",
+      "size_bytes": 171,
+      "sha256": "7da88015ffe94aeb5163f5e303ec3400ba86d4bdb2dcafd3a5cfac6c81cd4a94",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        32,
+        48
+      ],
+      "crc32": "e5af79b7"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/2f/c33b343ae36e872f7dcde22ac5e7cba561695e",
+      "size_bytes": 107,
+      "sha256": "407f0537890b7ea10966205eb46664244926229a516f93f9a40650eb3cd99f49",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "76758c7e"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/38/0147abfe75d45a682c05b1289835ff7ca3d895",
+      "size_bytes": 2986,
+      "sha256": "11834b901c65b67e9a8e735c9e90a96c9ae214a840fa268b775409bc931b17d6",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "6f544d04"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/6e/2e8ba921850a135e35972ed454d89751dd0d4e",
+      "size_bytes": 1213,
+      "sha256": "f7baececfa5264a58bf25b64136315f49bd230f40ba120e0ca2e69682ca6c126",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "9d8f9fb2"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/97/ef1731e404bf6bda0fc432b63db5ad9ba064a9",
+      "size_bytes": 131,
+      "sha256": "4803fa7004582e8fab9f44bd5006f6cc9fa34fdfc6fcff5b3a7e4510992a3805",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "ead7d138"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/97/bc09b8189d2cd0cdc8d66069b3378ac4b5bad5",
+      "size_bytes": 429,
+      "sha256": "b22ebcb33b4067ea8ed43fcad7edb9fd1509469faa9c32a227b67e30606479ae",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        28,
+        26
+      ],
+      "crc32": "c9ffcca3"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/d4/3e943312e0f2c653815dd791d93f94f0abd73f",
+      "size_bytes": 82558,
+      "sha256": "e58ce4be44ac078af26d3b5bdedae276f1f1f92ddf02e1e74a9506e56746455d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "6f2172fa"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/a9/8bf844898fe2901dca95212a6b73d8c6ed6fe7",
+      "size_bytes": 149,
+      "sha256": "2d8ac0c1ba437eeb0e1e82f1a47edb753b2efbaada6164e9e6e82d1cf5ca9e37",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "da06264b"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/d5/64d0bc3dd917926892c55e3706cc116d5b165e",
+      "size_bytes": 53,
+      "sha256": "1c934bf438aa6350a37a1ae73345b22ff97940a19a14016595971149740becc0",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        28,
+        26
+      ],
+      "crc32": "8470e3e4"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/c4/89e8f5233763933479b15efb821599c212b47f",
+      "size_bytes": 223,
+      "sha256": "03b161d6f07308f74ef6d5fe904474efeaa3ada55b1832120443a77426316784",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "f063d836"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/e1/521fa90dbdd373c1c2f6c25f8a7f33fdb28709",
+      "size_bytes": 335,
+      "sha256": "4a3cd6b51a0ea022d17f06cee75006bd823e8f5ec308a73c8ceb2d404501e906",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "c5c40f88"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/cd/7315b0be0c20d8404cf1c6315062f4ca7b82be",
+      "size_bytes": 163,
+      "sha256": "022f68eb0c36890fbd28ad2e9dfa49239181805f2fe0278d561acac5ab45b504",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        48,
+        46
+      ],
+      "crc32": "ca83af98"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size_bytes": 15,
+      "sha256": "164c5fa8067facf1a43f09ce3d0e35ebf53a7f5723ecbf15a8667cfc53c26f6c",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "98a4a0b4"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/f7/11af9b049361b2b246149188bad75872d052bf",
+      "size_bytes": 35410,
+      "sha256": "1641214f33f7282624b96ba593d8640f2596e9476f9db13e57c761789f3400d2",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "6e3ca5ac"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/fa/4c0750b08a82c11c62fc5ec9fe2025896425d4",
+      "size_bytes": 1313,
+      "sha256": "bfe36904b0afd3d3c74c1d7f0299926be6e22663ff704a223e7d6c0781d15607",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        28
+      ],
+      "crc32": "0e535f87"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/f8/df6fea4e39c773055d23582522c5881540e487",
+      "size_bytes": 303,
+      "sha256": "630465a612b828cf737fd7816f171e76797e55aa1f894f8e58e3b641503f4d94",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        48,
+        46
+      ],
+      "crc32": "09c73322"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/ce/0a8aa221d70bbea7817a0127b15f06478923d9",
+      "size_bytes": 43348,
+      "sha256": "d589f7e3070a1fd0d4ddb09e2a082d2e1457cab7ad2316c59ece424d3f3b5262",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "c6ad4600"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/70/70344063639007a5c71829c972c2212a2e429b",
+      "size_bytes": 582604,
+      "sha256": "42c6d71216cf1fa3940f47a0af7a1f9ebe291843fee1754ff59b8ea4aee17dbc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "381ff0e6"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/8c/37caa27be78cb33d82a674accff2cc1e9e7d99",
+      "size_bytes": 153,
+      "sha256": "fb1a947384d573723ff6a6a9683ed3fb88260e17ed9e07d6f7ad9f9b48951a2d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        23,
+        42
+      ],
+      "crc32": "76f08f49"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/1d/e22e4f4d7c04810eb14639b371433b2a2df705",
+      "size_bytes": 169,
+      "sha256": "b1b1175ad1154fb42f82077cc8bc9ccc450c83725aec9fe5e1d24aa5f518bb5d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "f1aab507"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/1c/f4ea6663d822bf9082c44ca7ea03f46cdefa88",
+      "size_bytes": 170,
+      "sha256": "4df2fe500fffb9e12c89cf9c61fc49bf095ccee4801eee51281176499bfca54e",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "ef9f7be6"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/8b/39c2f94c4db99da3e216b9c07a5ef519a20181",
+      "size_bytes": 504,
+      "sha256": "d900305d3f7e4b250fe75369c5fe32711ae8cc9d953d8826c5f869a9168dc500",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "239bca4e"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/8e/3c2ebc99e2e337f7d69948b93529a437590b27",
+      "size_bytes": 160,
+      "sha256": "0e1da092732296d1efc3d9798183192a9575c88d93227bb2232cf06b778fab06",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "3bba7884"
+    },
+    {
+      "path": "pygame_atclab/.git/objects/22/4e4eb46b034f1e172dac89d6551ee53c9bf13b",
+      "size_bytes": 120,
+      "sha256": "69aa785e45eb7af5a4654096e6cb737fdc6ddb61cae4d95261b41013f369a8f8",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        46,
+        22
+      ],
+      "crc32": "88434554"
+    },
+    {
+      "path": "pygame_atclab/.git/refs/heads/main",
+      "size_bytes": 41,
+      "sha256": "42fc2e9a4961925a61c1297aeefd301c913dc3116c6e122d70d78067ec349d67",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "e3a2e4f2"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/pcs/source-pane.pper",
+      "size_bytes": 22,
+      "sha256": "fcac29d947a07f338a15c64464449abe76071bb713539ef2f43b876eaaa0258c",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        20
+      ],
+      "crc32": "e5338a91"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/pcs/windowlayoutstate.pper",
+      "size_bytes": 285,
+      "sha256": "45e869e400361abcd5f9cd6dddf16b1c0882c050c36a5e182e2f0dc9ddd51fc9",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        20
+      ],
+      "crc32": "657c84bc"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/pcs/workbench-pane.pper",
+      "size_bytes": 57,
+      "sha256": "07e4ed709c32b1addc8de9c116086021dc4578eb31c1fd5d15ff64e2a794de0d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        20
+      ],
+      "crc32": "0119accf"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/pcs/files-pane.pper",
+      "size_bytes": 237,
+      "sha256": "c676e4c92a9dbf2e97e865a69b455ea628d6b9340527858c2e8c8d4c92b24e5c",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        20
+      ],
+      "crc32": "fa03c3fb"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/shared/notebooks/paths",
+      "size_bytes": 437,
+      "sha256": "0d0ae8bf0b7f8fa8804e17213075f71638b8d21f71c1dcef30a51bde46fa81af",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        33,
+        50
+      ],
+      "crc32": "c0e9b41a"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/shared/notebooks/patch-chunk-names",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        34,
+        0
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.git/logs/refs/heads/main",
+      "size_bytes": 1337,
+      "sha256": "9033b5547f37c54ae354d3bb53932b748e93599dfdd0f70372caa83dd3613c3b",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        58
+      ],
+      "crc32": "13472c38"
+    },
+    {
+      "path": "pygame_atclab/.git/refs/remotes/origin/main",
+      "size_bytes": 41,
+      "sha256": "42fc2e9a4961925a61c1297aeefd301c913dc3116c6e122d70d78067ec349d67",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        37,
+        6
+      ],
+      "crc32": "e3a2e4f2"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/8189A0DB",
+      "size_bytes": 110,
+      "sha256": "a501afffb59ebe49509723526f9a831a97bbde0aa0cb2441db62d0512b92eae8",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        11,
+        56
+      ],
+      "crc32": "48eaaf04"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/4857730F",
+      "size_bytes": 107,
+      "sha256": "de057e123714f3ca0320ccc7b51c5092c38e202b7aa8b1e1d3de27de941a84cc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        25,
+        18
+      ],
+      "crc32": "f10c6a5f"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/D5B80A15",
+      "size_bytes": 109,
+      "sha256": "e77af21c851d40d054a6f4d065acd9a2358d6c2d0a84a5e59f8b3f75ce941df7",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        38,
+        16
+      ],
+      "crc32": "29119dd8"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/BD694AB1",
+      "size_bytes": 107,
+      "sha256": "e4b890c57c4123fba5d0204997e7359efa2958ba204b795bc1a38a0c1c9cd438",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        9,
+        16
+      ],
+      "crc32": "fad8c491"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/F622A0FA",
+      "size_bytes": 54,
+      "sha256": "9198e55dc22131a6a0920c04113e609afcccb491fe7a465df8f8bbff4f07d3bc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        26,
+        30
+      ],
+      "crc32": "eab40df4"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/7355A599",
+      "size_bytes": 107,
+      "sha256": "81c03bbe6604fea931e11332eb39e12e89b2f3421fd5edbe82b55ee3915fc990",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        59,
+        14
+      ],
+      "crc32": "99df1db5"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/42CD3BDF",
+      "size_bytes": 54,
+      "sha256": "9198e55dc22131a6a0920c04113e609afcccb491fe7a465df8f8bbff4f07d3bc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        26,
+        38
+      ],
+      "crc32": "eab40df4"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/INDEX",
+      "size_bytes": 703,
+      "sha256": "0bac4cec3f565984206871c9d15eaf71f11858b198f629994273123b93caf56d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        26,
+        38
+      ],
+      "crc32": "5b3b5431"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/990DC97A",
+      "size_bytes": 54,
+      "sha256": "9198e55dc22131a6a0920c04113e609afcccb491fe7a465df8f8bbff4f07d3bc",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        10,
+        40
+      ],
+      "crc32": "eab40df4"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/22304C75",
+      "size_bytes": 109,
+      "sha256": "b0a5ceaca7fbd46bc544bb9d9b07d8f3f376ba04f640dd3eab0e63011ac1954d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        4
+      ],
+      "crc32": "784c3072"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/C30AD1B3",
+      "size_bytes": 107,
+      "sha256": "6eb8497b1504c411d06e89f2d07c792d76fffd0e497cce30abdbe8490b78a862",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        24,
+        38
+      ],
+      "crc32": "6bb91408"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/75E80B2E",
+      "size_bytes": 109,
+      "sha256": "b7f03654da094748abe6613f13df7c33f96d8af0eb5b80d725bd3c8c512139bd",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        12,
+        8
+      ],
+      "crc32": "9d8f0a6d"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/prop/CF8333EA",
+      "size_bytes": 106,
+      "sha256": "c547bef08dc42c559e01c0d156bad27359fc5c6299149058b630370d444a64ae",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        14,
+        47,
+        52
+      ],
+      "crc32": "cff18e5f"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/CD45EB1D",
+      "size_bytes": 659,
+      "sha256": "0ba114d22c702ce7bb9372ecf4435609b269de7d9c66a1c821f67d0fc8480b3d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        59,
+        14
+      ],
+      "crc32": "6597895e"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/5206CE6A",
+      "size_bytes": 668,
+      "sha256": "becf105e30dbfacd9b8d12fcf707b53eed540765d87ac5fc035568f17ad857c8",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        38,
+        16
+      ],
+      "crc32": "6183ffb6"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/5AE85066-contents",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        9,
+        18
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/FDA02996-contents",
+      "size_bytes": 148,
+      "sha256": "a28dc93ed36dd432d44295c7aa91fcc4896c05e0b6fb056c84027e242b1eeb76",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        24,
+        42
+      ],
+      "crc32": "93633362"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/41DDDD9A-contents",
+      "size_bytes": 98638,
+      "sha256": "336dadc2ee9ec1808882884afc93c7a13da12920326af122e41778113658701a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        9,
+        28
+      ],
+      "crc32": "d07d8d84"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/08446DE4-contents",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        26,
+        38
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/934C406C-contents",
+      "size_bytes": 467,
+      "sha256": "d7f0779d754d512eeb1faa24c4f74a12834848ffb484be92e467825e2f3bdc1f",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        18,
+        16,
+        11,
+        26
+      ],
+      "crc32": "709b4441"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/943F44A1-contents",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        26,
+        30
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/41DDDD9A",
+      "size_bytes": 652,
+      "sha256": "68e30691b21a3d67219e0184240a56622a06638857c5786d91572839f1acb99d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        12,
+        8
+      ],
+      "crc32": "c105bf8b"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/D3615FD7-contents",
+      "size_bytes": 168265,
+      "sha256": "345b13e190a664f40ee772e29fa2f3bd4661f9a0882162c8715405d712d8e9f2",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        11,
+        54
+      ],
+      "crc32": "34873a9e"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/B08A0209",
+      "size_bytes": 650,
+      "sha256": "becbbe0c2ee778a5f131a4c5c1262f42c6241ecb88463194b5fa5975a2ac5003",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        36,
+        4
+      ],
+      "crc32": "33412617"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/5206CE6A-contents",
+      "size_bytes": 19084,
+      "sha256": "697d4edf6e3aaca2fa24d541795d5d84afafcda4a8423e4007deaf677285574e",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        35,
+        58
+      ],
+      "crc32": "788d5d58"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/9206F31C-contents",
+      "size_bytes": 3169,
+      "sha256": "cd7f0d91f9cab4b59beee3162bd6555500995c616f0cf005e4d416b4ee5b02a5",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        10,
+        40
+      ],
+      "crc32": "af3b85df"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/02F90625-contents",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        31,
+        26
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/DBCDF3D6-contents",
+      "size_bytes": 148,
+      "sha256": "a28dc93ed36dd432d44295c7aa91fcc4896c05e0b6fb056c84027e242b1eeb76",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        9,
+        18
+      ],
+      "crc32": "93633362"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/B08A0209-contents",
+      "size_bytes": 17637,
+      "sha256": "6d9e26800871b31ce98d91be089efba2226227fe8ac7ade18cb307770c07924a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        52,
+        46
+      ],
+      "crc32": "33ff6d59"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/CD45EB1D-contents",
+      "size_bytes": 368,
+      "sha256": "0a1a0abbabb9af4ac4571fe5018057e1d3276c0a3503b678939f2c05aa007c4a",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        19,
+        6
+      ],
+      "crc32": "d381fd4d"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/D3615FD7",
+      "size_bytes": 667,
+      "sha256": "24382f38cd026634025b29f630c74a6dc2505103c4f0d4863d61404cdde62373",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        11,
+        56
+      ],
+      "crc32": "b4b08e69"
+    },
+    {
+      "path": "pygame_atclab/.Rproj.user/B1521221/sources/session-43fbecd0/lock_file",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        12,
+        9,
+        10
+      ],
+      "crc32": "00000000"
+    },
+    {
+      "path": "pygame_atclab/.git/logs/refs/remotes/origin/main",
+      "size_bytes": 1029,
+      "sha256": "49cbc6f37622489a5c392a88c259e2dfb2b2a325cc67b5f2a561ce4ff7a45a9d",
+      "zip_member_timestamp": [
+        2026,
+        3,
+        23,
+        13,
+        37,
+        6
+      ],
+      "crc32": "72ad84c6"
+    }
+  ]
+}

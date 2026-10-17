@@ -6,6 +6,7 @@ import os
 import argparse
 import time
 import glob
+from response_timing import AUDIT_FIELDS, FlashResponses, PsychtoolboxKeyboard, TimingError
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 import warnings
@@ -572,6 +573,9 @@ ALL_RESULT_FIELDS = [
     "key_nonconf",
     "key_pm",
     
+    # Native response timing audit (optional in historical files)
+    *AUDIT_FIELDS,
+
     # task vars
     "stimulus", "is_conflict", "response", "rt_s", "rt_ms", "correct", "outcome", "feedback",
     "deadline_s", "doms_thresh_px", "doms_px", "doms_thresh_nm", "DOMS", "TTMS", 
@@ -3542,35 +3546,14 @@ def show_block_feedback(screen, clock, font, results: List[Dict[str, Any]], bloc
 
 # --------------------------- Trial execution -----------------------------
 
-def run_trial(screen, clock, font, info_font, feedback_font, 
-              trial: TrialSpec, trial_idx: int, total_trials: int,
-              has_pm_design: bool, drt_enabled: bool,
-              aid_label_font=None, aid_font=None,
-              intertrial_every: int = INTERTRIAL_QUESTION_EVERY,
-              intertrial_item: Dict[str, str] = INTERTRIAL_QUESTION_ITEM,
-              run_ts: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Runs a single trial and returns a result dict.
-
-    BEHAVIOUR:
-      - If trial.auto_delay < 0 and trial.automation is not None:
-          * Show the automation banner TOP-CENTRE ONLY for abs(auto_delay) seconds
-            BEFORE aircraft stimulus onset.
-          * RT is always measured from aircraft stimulus onset (not from the pre-cue).
-          * During stimulus, automation banner is shown immediately (auto_delay treated as 0.0).
-            (If you want it to disappear once stimulus begins, set auto_delay = float("inf") below.)
-      - If trial.auto_delay >= 0: unchanged (banner appears after that many seconds from stimulus onset).
-    """
-    if aid_label_font is None:
-        aid_label_font = info_font
-    if aid_font is None:
-        aid_font = font
-        
-    # Copy start positions into mutable variables
-    x1 = trial.pos1_start_x
-    y1 = trial.pos1_start_y
-    x2 = trial.pos2_start_x
-    y2 = trial.pos2_start_y
+def draw_response_frame(screen, font, info_font, trial, trial_idx, total_trials,
+                        elapsed, auto_delay, flash_on, aid_label_font, aid_font):
+    """Original live geometry and overlays; no clock, events, flip, or writes."""
+    # Position is determined by time since the first aircraft flip.
+    x1 = trial.pos1_start_x + trial.vel1_x * elapsed
+    y1 = trial.pos1_start_y + trial.vel1_y * elapsed
+    x2 = trial.pos2_start_x + trial.vel2_x * elapsed
+    y2 = trial.pos2_start_y + trial.vel2_y * elapsed
 
     vel1_x, vel1_y = trial.vel1_x, trial.vel1_y
     vel2_x, vel2_y = trial.vel2_x, trial.vel2_y
@@ -3583,6 +3566,288 @@ def run_trial(screen, clock, font, info_font, feedback_font,
     speed_label1 = f"{fl1}>{fl1} {sp1:.0f}"
     speed_label2 = f"{fl2}>{fl2} {sp2:.0f}"
 
+
+    context_id = trial.context_id
+    if context_id == 1:
+        border_color = (255, 0, 0)
+    elif context_id == 2:
+        border_color = (0, 0, 255)
+    else:
+        border_color = None
+
+    cx = SCREEN_WIDTH / 2
+    cy = SCREEN_HEIGHT / 2
+
+    screen.fill(BG_COLOR)
+
+    big_radius = SCREEN_HEIGHT // 2
+    pygame.draw.circle(
+        screen,
+        BG_CIRCLE_COLOR,
+        (int(cx), int(cy)),
+        big_radius,
+        0,
+    )
+
+    pygame.draw.line(
+        screen,
+        ROUTE_COLOR,
+        (int(trial.route1_start_x), int(trial.route1_start_y)),
+        (int(trial.route1_end_x),   int(trial.route1_end_y)),
+        1,
+    )
+
+    pygame.draw.line(
+        screen,
+        ROUTE_COLOR,
+        (int(trial.route2_start_x), int(trial.route2_start_y)),
+        (int(trial.route2_end_x),   int(trial.route2_end_y)),
+        1,
+    )
+
+    if border_color is not None:
+        pygame.draw.rect(
+            screen,
+            border_color,
+            screen.get_rect(),
+            8
+        )
+
+    if flash_on:
+        pygame.draw.circle(
+            screen,
+            FLASH_COLOR,
+            (int(cx), int(cy)),
+            big_radius,
+            12
+        )
+
+    guide_x = int(GUIDE_MARGIN + trial.guide_min_sep)
+    guide_y = SCREEN_HEIGHT // 2
+    draw_guide_cross(screen, guide_x, guide_y, trial.guide_min_sep)
+
+    if SHOW_DOMS_OVERLAY:
+        draw_doms_marker_and_label(
+            screen,
+            info_font,
+            trial=trial,
+            guide_x=guide_x,
+            guide_y=guide_y,
+            guide_min_sep=trial.guide_min_sep,
+            doms_px=trial.min_sep,
+            doms_nm=trial.doms_nm,
+            color=TEXT_COLOR,
+            line_color=(255, 255, 255),
+        )
+
+    pygame.draw.circle(
+        screen,
+        AC1_CIRCLE_COLOR,
+        (int(x1), int(y1)),
+        CIRCLE_RADIUS,
+        ui(1),
+    )
+    pygame.draw.circle(
+        screen,
+        AC2_CIRCLE_COLOR,
+        (int(x2), int(y2)),
+        CIRCLE_RADIUS,
+        ui(1),
+    )
+
+    future_dt = 60.0
+    f1_x = x1 + vel1_x * future_dt
+    f1_y = y1 + vel1_y * future_dt
+    f2_x = x2 + vel2_x * future_dt
+    f2_y = y2 + vel2_y * future_dt
+
+    pygame.draw.line(
+        screen,
+        AC1_CIRCLE_COLOR,
+        (int(x1), int(y1)),
+        (int(f1_x), int(f1_y)),
+        ui(1),
+    )
+    pygame.draw.line(
+        screen,
+        AC2_CIRCLE_COLOR,
+        (int(x2), int(y2)),
+        (int(f2_x), int(f2_y)),
+        ui(1),
+    )
+
+    tip_radius = ui(2)
+    pygame.draw.circle(
+        screen,
+        (255, 255, 255),
+        (int(f1_x), int(f1_y)),
+        tip_radius,
+        0,
+    )
+    pygame.draw.circle(
+        screen,
+        (255, 255, 255),
+        (int(f2_x), int(f2_y)),
+        tip_radius,
+        0,
+    )
+
+    # Info boxes + connectors
+    box_offset = ui(80)
+    diag = box_offset / math.sqrt(2.0)
+
+    box1_tl = (x1 + diag, y1 - diag)
+    box2_tl = (x2 + diag, y2 - diag)
+
+    auto_label1 = None
+    auto_label2 = None
+    if AUTOMATION_ON and AUTOMATION_IN_INFOBOX and (trial.automation is not None) and (elapsed >= auto_delay):
+        auto_label1 = str(trial.automation)
+        auto_label2 = str(trial.automation)
+
+    box1_rect = draw_info_box(
+        screen,
+        info_font,
+        trial.callsign1,
+        speed_label1,
+        box1_tl,
+        auto_text=auto_label1,
+        fg=INFOBOX_COLOR,
+    )
+
+    box2_rect = draw_info_box(
+        screen,
+        info_font,
+        trial.callsign2,
+        speed_label2,
+        box2_tl,
+        auto_text=auto_label2,
+        fg=INFOBOX_COLOR,
+    )
+
+    def draw_middle_connector(color, circle_pos, box_rect):
+        x0, y0 = circle_pos
+        x1c, y1c = box_rect.topleft   # anchor to top-left corner of the info box
+
+        vx = x1c - x0
+        vy = y1c - y0
+        dist = math.hypot(vx, vy)
+
+        if dist <= 1e-6:
+            return
+
+        ux = vx / dist
+        uy = vy / dist
+
+        # scaled padding away from the aircraft circle and box corner
+        start_pad = ui(16)
+        end_pad   = ui(16)
+
+        start_x = x0 + ux * start_pad
+        start_y = y0 + uy * start_pad
+        end_x   = x1c - ux * end_pad
+        end_y   = y1c - uy * end_pad
+
+        pygame.draw.line(
+            screen,
+            color,
+            (int(start_x), int(start_y)),
+            (int(end_x), int(end_y)),
+            max(1, ui(1)),
+        )
+
+    circle1_pos = (x1, y1)
+    circle2_pos = (x2, y2)
+
+    draw_middle_connector(AC1_CIRCLE_COLOR, circle1_pos, box1_rect)
+    draw_middle_connector(AC2_CIRCLE_COLOR, circle2_pos, box2_rect)
+
+    # --- Aid banner (top-centre) ---
+    if AUTOMATION_ON and (trial.automation is not None) and (elapsed >= auto_delay):
+        # Normal AUTOMATION blocks (unchanged)
+        draw_aid_banner_top_center(
+            screen,
+            small_font=aid_label_font,
+            big_font=aid_font,
+            label=str(trial.automation),
+            y=ui(20)
+        )
+
+    elif MASKED_AID_BANNER_ON:
+        # MANUAL masked banner (drawing-only; does not touch trial.automation)
+        draw_aid_banner_top_center(
+            screen,
+            small_font=aid_label_font,
+            big_font=aid_font,
+            label=str(MASKED_AID_BANNER_TEXT),
+            y=ui(MASKED_AID_BANNER_Y)
+        )
+
+    # Progress counter
+    corner_pad = ui(16)
+    header_text = f"Trial {trial_idx + 1}/{total_trials}"
+    header_surf = font.render(header_text, True, TEXT_COLOR)
+    header_rect = header_surf.get_rect()
+    header_rect.topright = (SCREEN_WIDTH - corner_pad, corner_pad)
+    screen.blit(header_surf, header_rect)
+
+    # Countdown timer
+    remaining = max(0.0, trial.deadline - elapsed)
+    timer_text = f"{remaining:4.1f}s"
+    timer_surf = font.render(timer_text, True, TEXT_COLOR)
+    timer_rect = timer_surf.get_rect()
+    timer_rect.topleft = (corner_pad, corner_pad)
+    screen.blit(timer_surf, timer_rect)
+
+
+
+def response_keymap(has_pm_design=False):
+    mapping = {pygame.key.name(KEY_CONFLICT).upper(): "conflict",
+               pygame.key.name(KEY_NONCONFLICT).upper(): "nonconflict"}
+    if has_pm_design:
+        mapping.update({"9": "pm", "KP9": "pm"})
+    return mapping
+
+
+def _trial_quit_requested():
+    # Retain the task's Option/Alt+Q shortcut and ignored window-close button.
+    return any(is_hard_quit_event(e) for e in pygame.event.get())
+
+
+def run_trial(screen, clock, font, info_font, feedback_font, 
+              trial: TrialSpec, trial_idx: int, total_trials: int,
+              has_pm_design: bool, drt_enabled: bool,
+              aid_label_font=None, aid_font=None,
+              intertrial_every: int = INTERTRIAL_QUESTION_EVERY,
+              intertrial_item: Dict[str, str] = INTERTRIAL_QUESTION_ITEM,
+              run_ts: Optional[str] = None, timing=None) -> Dict[str, Any]:
+    """
+    Runs a single trial and returns a result dict.
+
+    BEHAVIOUR:
+      - If trial.auto_delay < 0 and trial.automation is not None:
+          * Show the automation banner TOP-CENTRE ONLY for abs(auto_delay) seconds
+            BEFORE aircraft stimulus onset.
+          * RT is always measured from aircraft stimulus onset (not from the pre-cue).
+          * During stimulus, automation banner is shown immediately (auto_delay treated as 0.0).
+            (If you want it to disappear once stimulus begins, set auto_delay = float("inf") below.)
+      - If trial.auto_delay >= 0: unchanged (banner appears after that many seconds from stimulus onset).
+    """
+    if timing is None:
+        keys = set(response_keymap(has_pm_design))
+        if drt_enabled:
+            keys.add("SPACE")
+        with PsychtoolboxKeyboard(keys=keys) as owned_timing:
+            return run_trial(screen, clock, font, info_font, feedback_font,
+                             trial, trial_idx, total_trials, has_pm_design, drt_enabled,
+                             aid_label_font, aid_font, intertrial_every, intertrial_item,
+                             run_ts, timing=owned_timing)
+    pygame.key.set_repeat()
+    if aid_label_font is None:
+        aid_label_font = info_font
+    if aid_font is None:
+        aid_font = font
+        
     auto_delay = trial.auto_delay if trial.auto_delay is not None else 0.0
 
     context_id = trial.context_id
@@ -3641,333 +3906,65 @@ def run_trial(screen, clock, font, info_font, feedback_font,
 
             pygame.display.flip()
 
-        # Stimulus onset is NOW; reset RT clock origin
-        start_time = time.perf_counter()
-
         # After pre-cue, show automation immediately during stimulus (explicit)
         auto_delay = 0.0
 
         # If you instead want it to DISAPPEAR during stimulus, use:
         # auto_delay = float("inf")
 
-    else:
-        # Normal case: stimulus onset is now
-        start_time = time.perf_counter()
-
-    # ---------------- Trial state ----------------
-    responded = False
-    response = None  # "conflict" | "nonconflict" | "pm" | None
-    rt = None
-
-    running_trial = True
-
-    # ---- Flash scheduler ----
-    flashes: List[Dict[str, Any]] = []
-
-    if drt_enabled:
-        next_flash_time = sample_drt_flash_interval()
-        flash_on = False
-        flash_off_time = 0.0
-    else:
-        next_flash_time = None
-        flash_on = False
-        flash_off_time = None
-
-    # ---------------- Stimulus loop ----------------
-    while running_trial:
-        dt_ms = clock.tick(FPS)
-        dt = dt_ms / 1000.0
-        now_time = time.perf_counter()
-        elapsed = now_time - start_time
-
-        # ----- Handle flash scheduling -------------
-        if drt_enabled:
-            if (not flash_on) and (elapsed >= next_flash_time):
-                if flashes:
-                    flashes[-1]["window_end"] = elapsed
-
-                flash_on = True
-                flash_off_time = elapsed + FLASH_DURATION
-
-                flashes.append({
-                    "onset": elapsed,
-                    "rt": float("nan"),
-                    "responded": False,
-                    "key": None,
-                    "window_end": None,
-                })
-
-            if flash_on and elapsed >= flash_off_time:
-                flash_on = False
-                next_flash_time = elapsed + sample_drt_flash_interval()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pass  # ignore window close button
-            if event.type == pygame.KEYDOWN:
-                if is_hard_quit_event(event):
-                    return {"quit": True}
-
-                # Flash response key (DRT)
-                if drt_enabled and event.key == FLASH_KEY:
-                    if flashes:
-                        for f in reversed(flashes):
-                            onset = f["onset"]
-                            window_end = f.get("window_end", None)
-                            if elapsed >= onset and (window_end is None or elapsed < window_end):
-                                if not f["responded"]:
-                                    f["rt"] = elapsed - onset
-                                    f["responded"] = True
-                                    f["key"] = event.key
-                                break
-                    continue
-
-                # Main task response (RT is from stimulus onset)
-                if not responded:
-                    if has_pm_design and event.key in (pygame.K_9, pygame.K_KP9):
-                        response = "pm"
-                        responded = True
-                        rt = elapsed
-                    elif event.key == KEY_CONFLICT:
-                        response = "conflict"
-                        responded = True
-                        rt = elapsed
-                    elif event.key == KEY_NONCONFLICT:
-                        response = "nonconflict"
-                        responded = True
-                        rt = elapsed
-
-        # Update positions
-        x1 += vel1_x * dt
-        y1 += vel1_y * dt
-        x2 += vel2_x * dt
-        y2 += vel2_y * dt
-
-        screen.fill(BG_COLOR)
-
-        big_radius = SCREEN_HEIGHT // 2
-        pygame.draw.circle(
-            screen,
-            BG_CIRCLE_COLOR,
-            (int(cx), int(cy)),
-            big_radius,
-            0,
-        )
-
-        pygame.draw.line(
-            screen,
-            ROUTE_COLOR,
-            (int(trial.route1_start_x), int(trial.route1_start_y)),
-            (int(trial.route1_end_x),   int(trial.route1_end_y)),
-            1,
-        )
-
-        pygame.draw.line(
-            screen,
-            ROUTE_COLOR,
-            (int(trial.route2_start_x), int(trial.route2_start_y)),
-            (int(trial.route2_end_x),   int(trial.route2_end_y)),
-            1,
-        )
-
-        if border_color is not None:
-            pygame.draw.rect(
-                screen,
-                border_color,
-                screen.get_rect(),
-                8
-            )
-
-        if drt_enabled and flash_on:
-            pygame.draw.circle(
-                screen,
-                FLASH_COLOR,
-                (int(cx), int(cy)),
-                big_radius,
-                12
-            )
-
-        guide_x = int(GUIDE_MARGIN + trial.guide_min_sep)
-        guide_y = SCREEN_HEIGHT // 2
-        draw_guide_cross(screen, guide_x, guide_y, trial.guide_min_sep)
-
-        if SHOW_DOMS_OVERLAY:
-            draw_doms_marker_and_label(
-                screen,
-                info_font,
-                trial=trial,
-                guide_x=guide_x,
-                guide_y=guide_y,
-                guide_min_sep=trial.guide_min_sep,
-                doms_px=trial.min_sep,
-                doms_nm=trial.doms_nm,
-                color=TEXT_COLOR,
-                line_color=(255, 255, 255),
-            )
-
-        pygame.draw.circle(
-            screen,
-            AC1_CIRCLE_COLOR,
-            (int(x1), int(y1)),
-            CIRCLE_RADIUS,
-            ui(1),
-        )
-        pygame.draw.circle(
-            screen,
-            AC2_CIRCLE_COLOR,
-            (int(x2), int(y2)),
-            CIRCLE_RADIUS,
-            ui(1),
-        )
-
-        future_dt = 60.0
-        f1_x = x1 + vel1_x * future_dt
-        f1_y = y1 + vel1_y * future_dt
-        f2_x = x2 + vel2_x * future_dt
-        f2_y = y2 + vel2_y * future_dt
-
-        pygame.draw.line(
-            screen,
-            AC1_CIRCLE_COLOR,
-            (int(x1), int(y1)),
-            (int(f1_x), int(f1_y)),
-            ui(1),
-        )
-        pygame.draw.line(
-            screen,
-            AC2_CIRCLE_COLOR,
-            (int(x2), int(y2)),
-            (int(f2_x), int(f2_y)),
-            ui(1),
-        )
-
-        tip_radius = ui(2)
-        pygame.draw.circle(
-            screen,
-            (255, 255, 255),
-            (int(f1_x), int(f1_y)),
-            tip_radius,
-            0,
-        )
-        pygame.draw.circle(
-            screen,
-            (255, 255, 255),
-            (int(f2_x), int(f2_y)),
-            tip_radius,
-            0,
-        )
-
-        # Info boxes + connectors
-        box_offset = ui(80)
-        diag = box_offset / math.sqrt(2.0)
-
-        box1_tl = (x1 + diag, y1 - diag)
-        box2_tl = (x2 + diag, y2 - diag)
-
-        auto_label1 = None
-        auto_label2 = None
-        if AUTOMATION_ON and AUTOMATION_IN_INFOBOX and (trial.automation is not None) and (elapsed >= auto_delay):
-            auto_label1 = str(trial.automation)
-            auto_label2 = str(trial.automation)
-
-        box1_rect = draw_info_box(
-            screen,
-            info_font,
-            trial.callsign1,
-            speed_label1,
-            box1_tl,
-            auto_text=auto_label1,
-            fg=INFOBOX_COLOR,
-        )
-
-        box2_rect = draw_info_box(
-            screen,
-            info_font,
-            trial.callsign2,
-            speed_label2,
-            box2_tl,
-            auto_text=auto_label2,
-            fg=INFOBOX_COLOR,
-        )
-
-        def draw_middle_connector(color, circle_pos, box_rect):
-            x0, y0 = circle_pos
-            x1c, y1c = box_rect.topleft   # anchor to top-left corner of the info box
-
-            vx = x1c - x0
-            vy = y1c - y0
-            dist = math.hypot(vx, vy)
-
-            if dist <= 1e-6:
-                return
-
-            ux = vx / dist
-            uy = vy / dist
-
-            # scaled padding away from the aircraft circle and box corner
-            start_pad = ui(16)
-            end_pad   = ui(16)
-
-            start_x = x0 + ux * start_pad
-            start_y = y0 + uy * start_pad
-            end_x   = x1c - ux * end_pad
-            end_y   = y1c - uy * end_pad
-
-            pygame.draw.line(
-                screen,
-                color,
-                (int(start_x), int(start_y)),
-                (int(end_x), int(end_y)),
-                max(1, ui(1)),
-            )
-    
-        circle1_pos = (x1, y1)
-        circle2_pos = (x2, y2)
-
-        draw_middle_connector(AC1_CIRCLE_COLOR, circle1_pos, box1_rect)
-        draw_middle_connector(AC2_CIRCLE_COLOR, circle2_pos, box2_rect)
-
-        # --- Aid banner (top-centre) ---
-        if AUTOMATION_ON and (trial.automation is not None) and (elapsed >= auto_delay):
-            # Normal AUTOMATION blocks (unchanged)
-            draw_aid_banner_top_center(
-                screen,
-                small_font=aid_label_font,
-                big_font=aid_font,
-                label=str(trial.automation),
-                y=ui(20)
-            )
-
-        elif MASKED_AID_BANNER_ON:
-            # MANUAL masked banner (drawing-only; does not touch trial.automation)
-            draw_aid_banner_top_center(
-                screen,
-                small_font=aid_label_font,
-                big_font=aid_font,
-                label=str(MASKED_AID_BANNER_TEXT),
-                y=ui(MASKED_AID_BANNER_Y)
-            )
-
-        # Progress counter
-        corner_pad = ui(16)
-        header_text = f"Trial {trial_idx + 1}/{total_trials}"
-        header_surf = font.render(header_text, True, TEXT_COLOR)
-        header_rect = header_surf.get_rect()
-        header_rect.topright = (SCREEN_WIDTH - corner_pad, corner_pad)
-        screen.blit(header_surf, header_rect)
-
-        # Countdown timer
-        remaining = max(0.0, trial.deadline - elapsed)
-        timer_text = f"{remaining:4.1f}s"
-        timer_surf = font.render(timer_text, True, TEXT_COLOR)
-        timer_rect = timer_surf.get_rect()
-        timer_rect.topleft = (corner_pad, corner_pad)
-        screen.blit(timer_surf, timer_rect)
-
+    # Acquisition begins before first-frame preparation. Never flush after onset.
+    with timing.trial(response_keymap(has_pm_design)) as responses:
+        flashes = FlashResponses(responses.start_s, responses.held_keys, timing.backend_version)
+        if _trial_quit_requested():
+            return {"quit": True}
+        draw_response_frame(screen, font, info_font, trial, trial_idx, total_trials,
+                            0.0, auto_delay, False, aid_label_font, aid_font)
         pygame.display.flip()
+        responses.mark_onset(timing.now(), trial.deadline)
+        next_flash_s = responses.onset_s + sample_drt_flash_interval() if drt_enabled else None
+        flash_on = False
+        flash_off_s = None
 
-        if responded or elapsed >= trial.deadline:
-            running_trial = False
+        while True:
+            if _trial_quit_requested():
+                return {"quit": True}
+            # A fence BEFORE draining avoids expiring a window while an event
+            # stamped before its deadline is waiting in the native queue.
+            fence_s = timing.now()
+            events = timing.drain()
+            responses.consume(events)
+            responses.expire(fence_s)
+            if drt_enabled:
+                end_s = (responses.response_event.timestamp_s if responses.response_event
+                         else responses.deadline_s)
+                flashes.consume(events, end_s=end_s)
+            if responses.response is not None:
+                break
+
+            clock.tick(FPS)
+            now_s = timing.now()
+            new_flash = drt_enabled and not flash_on and now_s >= next_flash_s
+            if new_flash:
+                flash_on = True
+            elif flash_on and now_s >= flash_off_s:
+                flash_on = False
+                next_flash_s = now_s + sample_drt_flash_interval()
+
+            draw_response_frame(screen, font, info_font, trial, trial_idx, total_trials,
+                                now_s - responses.onset_s, auto_delay, flash_on,
+                                aid_label_font, aid_font)
+            pygame.display.flip()
+            if new_flash:
+                visible_s = timing.now()
+                flashes.add_flash(visible_s)
+                flash_off_s = visible_s + FLASH_DURATION
+
+        timing_record = responses.result()
+        flash_record = flashes.export(responses.onset_s)
+
+    # Native acquisition is stopped before feedback/questions or other waits.
+    response = None if timing_record["response"] == "TIMEOUT" else timing_record["response"]
+    rt = timing_record["rt_s"]
 
     # ----------------- Compute outcome & feedback -------------------------
 
@@ -4076,18 +4073,6 @@ def run_trial(screen, clock, font, info_font, feedback_font,
                 )
                 pygame.display.flip()
 
-    # ---- Summarise flash data for this trial -----------------------------
-    if drt_enabled and flashes:
-        flash_onsets = ";".join(f"{f['onset']:.3f}" for f in flashes)
-        flash_rts = ";".join(
-            ("NA" if (not f["responded"] or math.isnan(f["rt"]))
-             else f"{f['rt']:.3f}")
-            for f in flashes
-        )
-    else:
-        flash_onsets = ""
-        flash_rts = ""
-
     result: Dict[str, Any] = {
         "run_timestamp": run_ts,
         "trial_idx": trial_idx + 1,
@@ -4095,7 +4080,7 @@ def run_trial(screen, clock, font, info_font, feedback_font,
         "is_conflict": int(trial.is_conflict),
         "response": response if response is not None else "",
         "rt_s": "" if rt is None else rt,
-        "rt_ms": round(rt * 1000, 2) if rt is not None else "",
+        "rt_ms": rt * 1000 if rt is not None else "",
         "correct": "" if correct is None else int(correct),
         "outcome": outcome,
         "feedback": feedback_text,
@@ -4116,9 +4101,9 @@ def run_trial(screen, clock, font, info_font, feedback_font,
         "callsign1": trial.callsign1,
         "callsign2": trial.callsign2,
         "aid_onset_s": trial.auto_delay if trial.auto_delay is not None else 0.0,
-        "aid_onset_ms": round(auto_delay * 1000, 0) if auto_delay is not None else "",
-        "flash_onsets": flash_onsets,
-        "flash_rts": flash_rts,
+        "aid_onset_ms": round((trial.auto_delay or 0.0) * 1000, 0),
+        **flash_record,
+        **{k: "" if timing_record[k] is None else timing_record[k] for k in AUDIT_FIELDS},
         "intertrial_q_shown": int(intertrial_shown),
         "intertrial_q_resp": "" if intertrial_resp is None else intertrial_resp,
         "stair_update_idx": "" if trial.stair_update_idx is None else int(trial.stair_update_idx),
@@ -4199,7 +4184,8 @@ class ATCLabApp:
     Wrapper class to hold Pygame state and the high-level flow:
     instructions -> trials -> feedback -> questionnaires -> save.
     """
-    def __init__(self, has_pm_design: bool, args: argparse.Namespace, drt_enabled: bool, fullscreen: bool = False):
+    def __init__(self, has_pm_design: bool, args: argparse.Namespace, drt_enabled: bool, fullscreen: bool = False, timing=None):
+        self.timing = timing
         self.run_ts = time.strftime("%Y%m%d_%H%M%S")
         self.has_pm_design = has_pm_design
         self.args = args
@@ -4948,6 +4934,7 @@ class ATCLabApp:
                 aid_label_font=self.aid_label_font,
                 aid_font=self.aid_font,
                 run_ts=self.run_ts,
+                timing=self.timing,
             )
 
             self._annotate_trial_result(res, block_name=block_name, block_idx=block_idx)
@@ -5244,9 +5231,20 @@ def main():
         random.seed(args.seed)
 
     has_pm_design = (args.pm_prop is not None and args.pm_prop > 0.0)
-    app = ATCLabApp(has_pm_design, args, drt_enabled=args.drt, fullscreen=bool(args.fullscreen))
-    app.run()
+    keys = set(response_keymap(has_pm_design))
+    if args.drt or any(b.get("DRT_ON", False) for b in BLOCKS):
+        keys.add("SPACE")
+    try:
+        with PsychtoolboxKeyboard(keys=keys) as timing:
+            app = ATCLabApp(has_pm_design, args, drt_enabled=args.drt,
+                            fullscreen=bool(args.fullscreen), timing=timing)
+            app.run()
+    finally:
+        pygame.quit()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except TimingError as exc:
+        raise SystemExit(f"[TIMING ERROR] {exc}") from exc
