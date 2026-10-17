@@ -118,3 +118,131 @@ outstanding; Windows mapping tests alone do not establish native operation.
 
 ## Author
 Russell J. Boag
+
+## Participant and historical-run exclusion audit
+
+The standalone `participant_qc/` pipeline adapts the dynamic-reliability and
+time-pressure Virus audits to ATCLAB's Semester 1 design. It produces review
+evidence and candidate lists; **it applies no exclusions, trims no trials, and
+does not change canonical data or behavioural analyses**.
+
+```sh
+/Users/rjb779/Library/r-miniconda-arm64/envs/r-pygame/bin/python participant_qc/run_qc.py
+/Users/rjb779/Library/r-miniconda-arm64/envs/r-pygame/bin/python -m unittest discover -s tests -v
+/Users/rjb779/Library/r-miniconda-arm64/envs/r-pygame/bin/python tests/validate_participant_qc.py --expect-current-cohort
+```
+
+Open `analysis_outputs/semester1_2026_qc/index.html`. CLI options are `--input`
+(default `data/data_atc_all.csv`), `--raw-dir` (`output`), `--config`
+(`participant_qc/config.json`), and `--output-dir` (the report directory above).
+The existing `r-pygame` environment supplies NumPy, Matplotlib and Pillow;
+validation additionally uses `pdfinfo`. No dependency installation is required.
+Omit `--expect-current-cohort` when validating future data deliveries; normal
+processing discovers run counts dynamically.
+
+### Agreed retrospective screens
+
+The following first-pass screens were agreed on 17 October 2026. They are
+retrospective descriptive criteria, not preregistered rules or proof of
+statistical equivalence to chance.
+
+| Screen | Scope | Role |
+| --- | --- | --- |
+| Accuracy differs from 80% by **more than 10 percentage points** | Calibration trials 151–300 | Exclusion candidate |
+| Same target-deviation screen | Full 500-trial manual block | Diagnostic only |
+| All-trial accuracy **≤55%** | Each whole scope below | Exclusion candidate |
+| RT **<200 ms** on **≥20% of all trials**, **≥20 fast responses**, and fast-response accuracy **≤55%**, jointly within the same scope | Each whole scope below | Exclusion candidate |
+
+Whole scopes are calibration (300 trials), manual, automation 95%, automation
+65% (500 each), pooled automation (1,000), and all experimental trials (1,500).
+Calibration-tail checks are target-only; 50-trial bins are plotting diagnostics
+and never trigger exclusions. Calibration accuracy exactly 70% or 90% passes.
+Thresholds, bin size, interval level and sensitivity thresholds are configurable.
+The Semester 1 study contract remains explicit: 80% target, 300/500-trial blocks,
+six orders, a 12-ID key-mapping cycle, 95%/65% advice and 10-second deadlines.
+Future design changes require an explicit adaptation; changing the task source
+must not silently reinterpret historical data.
+
+Accuracy counts timeouts as incorrect, even when legacy timeout rows retain an
+RT. Fast proportions use all trials; fast accuracy uses answered fast trials.
+Exactly 200 ms is not fast. Finite zero and negative answered RTs remain visible
+and count as fast. Empty fast-response subsets have missing accuracy. Mean
+answered RT, positive median RT, answered accuracy and timeout counts provide
+context; slow RT alone is not an exclusion criterion. Wilson intervals are
+purely descriptive and do not account for serial dependence or adaptive calibration.
+
+Missing or invalid scopes are **not assessable**, never silently clear. Missing
+required columns, duplicate trial identities, multiple selected runs per ID,
+ambiguous raw exports and raw/collated discrepancies stop generation. Timing
+metadata is optional for historical exports. New `ptb_queue_flip_v1` timestamps,
+readout delays and deadline consistency are checked in `timing_diagnostics.csv`;
+these findings are diagnostic only, not an additional exclusion rule. The audit
+preserves legacy RTs without retrospective correction or timing-version assignment.
+
+### Selected cohort and historical sessions
+
+The selected cohort is taken from the existing collated CSV and reconciled to
+raw combined exports by participant ID and run timestamp, with numeric-aware
+comparison of all source columns. **The audit does not reselect runs.** Existing
+collation uses file modification times, not run timestamps; both are recorded
+separately in `run_inventory.csv` with file checksums.
+
+The current snapshot contains 48 selected runs (86,400 trials) plus five earlier
+complete sessions (9,000 trials), sharing recorded IDs 005, 017, 033, 038 and 045.
+The user recalls that later sessions may be different replacement participants,
+but no replacement log was found in the repository. Identity and historical
+replacement reasons therefore remain **unconfirmed**. Observed performance is
+reported separately from that recollection. No new participant IDs are assigned.
+
+All 53 sessions receive individual PDF/PNG diagnostics. The five earlier runs
+also receive paired comparisons with the selected runs, scope-level comparison
+tables and a separate historical screening summary. Historical runs do not
+contribute to selected-cohort counts, candidate totals or reference pools. Future
+unselected later or unmatched raw exports are also inventoried and audited
+separately rather than selected automatically.
+
+The first audit found **no exclusion candidates in the selected 48-run cohort**;
+003, 005, 012, 016 and 042 had manual-only diagnostic flags. Earlier runs 005 and
+017 failed the calibration-target screen (62.7% and 51.3% final-150 accuracy).
+Earlier 017, 033 and 045 had manual diagnostic flags. Earlier 038 met none of the
+agreed criteria despite slow responding. These findings do not establish why
+any original session was replaced. All current scopes were assessable.
+
+### Figures, outputs and validation
+
+Plots retain sibling typography, colours, phase shading, RT scatter with a linear
+scale below 200 ms and logarithmic scale above, deadline markers, 50-trial fast-rate
+and accuracy panels, fast-only accuracy, and peer median/IQR bands. Traces follow
+each run's counterbalanced order. Peer bands align by condition and within-block
+trial across complete selected runs without anticipatory flags, excluding the
+focal recorded ID. This also excludes the corresponding selected run when viewing
+an earlier session with uncertain identity. Bands are descriptive references,
+not adjustments for order effects.
+
+Anticipatory comparators match both block order and key mapping. Among complete
+selected runs with no anticipatory flag, choose the minimum summed absolute
+MAD-standardised distance from subgroup medians of experimental accuracy and
+positive median RT. Zero-MAD terms contribute zero; participant ID breaks ties.
+Other review flags do not disqualify comparators. Missing comparators are explicit;
+there is no unmatched fallback. Pools, rankings and reference-band values are exported.
+
+The HTML index links cohort figures, all individual pages, historical comparisons,
+metrics, screening results, candidate unions, overlaps and integrity findings.
+`n_flagged_rules` covers all four screens; `n_exclusion_rules` covers only the
+three candidate criteria. Repeated scopes count once per criterion and once in
+the overall candidate total. Incomplete checks remain separate. Empty candidate
+lists are valid outputs.
+
+Generation hashes its input, raw exports, configuration, audit source, task source,
+collation source and report artifacts. It builds in a staging directory, preserves
+previous reports as `.previous_<timestamp>` siblings and publishes only completed
+generation. Failed builds remain unpublished. Reports and validation receipts
+under `analysis_outputs/` are generated local artifacts and ignored by Git.
+
+The independent validator imports no production QC modules. It recomputes metrics,
+intervals, flags, bins, candidate unions, peer references, comparator rankings and
+paired-session tables from source data, and checks report links, hashes and PDF/PNG
+structure. Tests also cover threshold boundaries, invalid/missing data, repeated
+IDs, output protection and the current task design. Rendered visual review is
+required after plotting changes. Current validation receipts and visual-review
+records are kept in `analysis_outputs/semester1_2026_qc_validation/`.

@@ -15,6 +15,7 @@ output/*
 plots/*
 data/*
 atclab_stimulus_screenshots/
+analysis_outputs/
 
 # Optional extraction of the canonical historical source ZIP
 source_archives/semester1_2026/extracted/
